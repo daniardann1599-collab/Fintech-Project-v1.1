@@ -7,8 +7,8 @@ from app.models.entities import TransferStatus
 
 
 class TransferInitiateRequest(BaseModel):
-    from_account: int
-    to_account: int
+    from_account: int = Field(gt=0)
+    to_account: int = Field(gt=0)
     amount: Decimal = Field(gt=0)
 
 

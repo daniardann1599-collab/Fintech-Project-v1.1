@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.accounts.router import router as accounts_router
@@ -6,10 +7,20 @@ from app.audit.router import router as audit_router
 from app.auth.router import router as auth_router
 from app.core.config import settings
 from app.core.database import Base, engine
+from app.core.exceptions import (
+    http_exception_handler,
+    unhandled_exception_handler,
+    validation_exception_handler,
+)
+from app.core.logging import configure_logging
+from app.core.middleware import RateLimitMiddleware, RequestLoggingMiddleware, SecurityHeadersMiddleware
 from app.customers.router import router as customers_router
+from app.events.router import router as events_router
 from app.ledger.router import router as ledger_router
 from app.models import entities  # noqa: F401
 from app.transfers.router import router as transfers_router
+
+configure_logging(settings.log_level)
 
 app = FastAPI(
     title=settings.app_name,
@@ -22,11 +33,18 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.cors_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RequestLoggingMiddleware)
+app.add_middleware(RateLimitMiddleware)
+
+app.add_exception_handler(HTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(Exception, unhandled_exception_handler)
 
 
 @app.on_event("startup")
@@ -43,13 +61,16 @@ def healthcheck() -> dict[str, str]:
 def architecture() -> dict:
     return {
         "scheme": "Client -> Backend API -> Database; Event layer from DB outbox",
-        "modules": ["auth", "customers", "accounts", "ledger", "transfers", "audit"],
+        "modules": ["auth", "customers", "accounts", "ledger", "transfers", "audit", "events"],
         "principles": [
             "JWT Auth",
             "REST API",
+            "WebSocket event stream",
             "Ledger is single source of truth",
             "Audit logging",
             "Outbox events",
+            "Structured logging",
+            "Rate limiting",
         ],
     }
 
@@ -60,3 +81,4 @@ app.include_router(accounts_router)
 app.include_router(ledger_router)
 app.include_router(transfers_router)
 app.include_router(audit_router)
+app.include_router(events_router)

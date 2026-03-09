@@ -2,9 +2,9 @@ services:
   db:
     image: postgres:15-alpine
     environment:
-      POSTGRES_DB: banking
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: "${POSTGRES_DB:-banking}"
+      POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-postgres}"
     ports:
       - "5432:5432"
     volumes:
@@ -15,8 +15,15 @@ services:
       context: ../backend
       dockerfile: Dockerfile
     environment:
-      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/banking
-      JWT_SECRET: super-secret-jwt-key
+      DATABASE_URL: "${DATABASE_URL:-postgresql+psycopg2://postgres:postgres@db:5432/banking}"
+      JWT_SECRET: "${JWT_SECRET:-change-me-local-dev}"
+      JWT_ALGORITHM: "${JWT_ALGORITHM:-HS256}"
+      ACCESS_TOKEN_EXPIRE_MINUTES: "${ACCESS_TOKEN_EXPIRE_MINUTES:-60}"
+      CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-*}"
+      RATE_LIMIT_REQUESTS: "${RATE_LIMIT_REQUESTS:-120}"
+      RATE_LIMIT_WINDOW_SECONDS: "${RATE_LIMIT_WINDOW_SECONDS:-60}"
+      LOG_LEVEL: "${LOG_LEVEL:-INFO}"
+      WEBSOCKET_POLL_SECONDS: "${WEBSOCKET_POLL_SECONDS:-2}"
     ports:
       - "8000:8000"
     depends_on:

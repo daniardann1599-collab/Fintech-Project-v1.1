@@ -1,12 +1,20 @@
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class AccountCreateRequest(BaseModel):
-    customer_id: int
+    customer_id: int = Field(gt=0)
     currency: str = Field(min_length=3, max_length=3)
+
+    @field_validator("currency")
+    @classmethod
+    def normalize_currency(cls, value: str) -> str:
+        normalized = value.upper()
+        if not normalized.isalpha() or len(normalized) != 3:
+            raise ValueError("currency must be a 3-letter ISO code")
+        return normalized
 
 
 class AccountResponse(BaseModel):

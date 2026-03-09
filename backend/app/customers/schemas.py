@@ -6,7 +6,7 @@ from app.models.entities import CustomerStatus
 
 
 class CustomerCreateRequest(BaseModel):
-    user_id: int
+    user_id: int = Field(gt=0)
     kyc_full_name: str = Field(min_length=2, max_length=255)
     kyc_document_id: str = Field(min_length=3, max_length=100)
 
