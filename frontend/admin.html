@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard | Northstar Bank</title>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+  </head>
+  <body class="app-body">
+    <div class="layout">
+      <aside class="sidebar">
+        <a class="brand" href="/index.html">
+          <span class="brand-mark">NB</span>
+          <span class="title">Northstar Admin</span>
+        </a>
+        <nav id="admin-nav" class="nav-menu">
+          <button class="nav-link active" data-view="audit"><span class="label">Audit logs</span></button>
+          <button class="nav-link" data-view="transactions"><span class="label">Transactions</span></button>
+          <button class="nav-link" data-view="customers"><span class="label">Customers</span></button>
+          <button class="nav-link" data-view="balances"><span class="label">Balances</span></button>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <p id="admin-name" class="welcome-title">Admin dashboard</p>
+            <p id="admin-sub" class="welcome-sub">Loading admin data...</p>
+          </div>
+          <button id="admin-logout-btn" class="button button-danger">Logout</button>
+        </header>
+
+        <section class="kpi-grid">
+          <article class="kpi"><p class="label">Audit records</p><p id="kpi-audit-count" class="value">0</p></article>
+          <article class="kpi"><p class="label">Transfers</p><p id="kpi-transfer-count" class="value">0</p></article>
+          <article class="kpi"><p class="label">Accounts</p><p id="kpi-account-count" class="value">0</p></article>
+        </section>
+
+        <div id="admin-alert" class="alert"></div>
+
+        <section id="admin-views">
+          <div id="view-audit" class="view active">
+            <article class="panel">
+              <div class="panel-header">
+                <h2>Audit logs</h2>
+                <button id="flush-outbox-btn" class="button button-ghost">Flush outbox events</button>
+              </div>
+              <div class="table-wrap">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>User ID</th>
+                      <th>Action</th>
+                      <th>Outcome</th>
+                      <th>Timestamp</th>
+                    </tr>
+                  </thead>
+                  <tbody id="audit-table-body"></tbody>
+                </table>
+              </div>
+            </article>
+          </div>
+
+          <div id="view-transactions" class="view">
+            <article class="panel">
+              <h2>Transfer monitor</h2>
+              <div class="table-wrap">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>From</th>
+                      <th>To</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                      <th>Created</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-transfer-table-body"></tbody>
+                </table>
+              </div>
+            </article>
+          </div>
+
+          <div id="view-customers" class="view">
+            <article class="panel">
+              <h2>Customer management</h2>
+              <div class="form-grid">
+                <form id="admin-lookup-customer-form" class="form-row-2">
+                  <div class="field">
+                    <label for="lookup-customer-id">Lookup customer by ID</label>
+                    <input id="lookup-customer-id" name="customer_id" type="number" min="1" required />
+                  </div>
+                  <button type="submit" class="button button-ghost">Load customer</button>
+                </form>
+
+                <form id="admin-create-customer-form" class="form-row-2">
+                  <div class="field">
+                    <label for="admin-customer-user-id">User ID</label>
+                    <input id="admin-customer-user-id" name="user_id" type="number" min="1" required />
+                  </div>
+                  <div class="field">
+                    <label for="admin-customer-fullname">Full name</label>
+                    <input id="admin-customer-fullname" name="kyc_full_name" minlength="2" required />
+                  </div>
+                  <div class="field">
+                    <label for="admin-customer-doc">Document ID</label>
+                    <input id="admin-customer-doc" name="kyc_document_id" minlength="3" required />
+                  </div>
+                  <button type="submit" class="button button-primary">Create customer</button>
+                </form>
+
+                <form id="admin-update-status-form" class="form-row-2">
+                  <div class="field">
+                    <label for="admin-status-customer-id">Customer ID</label>
+                    <input id="admin-status-customer-id" name="customer_id" type="number" min="1" required />
+                  </div>
+                  <div class="field">
+                    <label for="admin-status">Status</label>
+                    <select id="admin-status" name="status" required>
+                      <option value="PENDING">PENDING</option>
+                      <option value="VERIFIED">VERIFIED</option>
+                      <option value="SUSPENDED">SUSPENDED</option>
+                    </select>
+                  </div>
+                  <button type="submit" class="button button-primary">Update status</button>
+                </form>
+              </div>
+            </article>
+
+            <article class="panel">
+              <h3>Customer records</h3>
+              <div class="table-wrap">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>User ID</th>
+                      <th>Full name</th>
+                      <th>Document ID</th>
+                      <th>Status</th>
+                      <th>Created</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-customers-table-body"></tbody>
+                </table>
+              </div>
+            </article>
+          </div>
+
+          <div id="view-balances" class="view">
+            <article class="panel">
+              <h2>Control balances</h2>
+              <form id="adjust-balance-form" class="form-row-2">
+                <div class="field">
+                  <label for="adjust-account-id">Account</label>
+                  <select id="adjust-account-id" name="account_id" required></select>
+                </div>
+                <div class="field">
+                  <label for="adjust-operation">Operation</label>
+                  <select id="adjust-operation" name="operation" required>
+                    <option value="DEPOSIT">DEPOSIT</option>
+                    <option value="WITHDRAW">WITHDRAW</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="adjust-amount">Amount</label>
+                  <input id="adjust-amount" name="amount" type="number" min="0.01" step="0.01" required />
+                </div>
+                <div class="field">
+                  <label for="adjust-reference">Reference ID</label>
+                  <input id="adjust-reference" name="reference_id" minlength="3" required />
+                </div>
+                <button type="submit" class="button button-primary">Apply operation</button>
+              </form>
+            </article>
+
+            <article class="panel">
+              <h3>Accounts and balances</h3>
+              <div class="table-wrap">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Customer ID</th>
+                      <th>Currency</th>
+                      <th>Balance</th>
+                      <th>Created</th>
+                      <th>State</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-accounts-table-body"></tbody>
+                </table>
+              </div>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="/assets/js/pages/admin.js"></script>
+  </body>
+</html>

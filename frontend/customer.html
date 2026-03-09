@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Customer Dashboard | Northstar Bank</title>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+  </head>
+  <body class="app-body">
+    <div class="layout">
+      <aside class="sidebar">
+        <a class="brand" href="/index.html">
+          <span class="brand-mark">NB</span>
+          <span class="title">Northstar</span>
+        </a>
+        <nav id="customer-nav" class="nav-menu">
+          <button class="nav-link active" data-view="overview"><span class="label">Account overview</span></button>
+          <button class="nav-link" data-view="transfer"><span class="label">Transfer money</span></button>
+          <button class="nav-link" data-view="history"><span class="label">Transaction history</span></button>
+          <button class="nav-link" data-view="profile"><span class="label">Profile / KYC</span></button>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <p id="welcome-name" class="welcome-title">Welcome</p>
+            <p id="welcome-sub" class="welcome-sub">Loading profile...</p>
+          </div>
+          <button id="logout-btn" class="button button-danger">Logout</button>
+        </header>
+
+        <section class="kpi-grid">
+          <article class="kpi"><p class="label">Total balance</p><p id="kpi-total-balance" class="value">$0.00</p></article>
+          <article class="kpi"><p class="label">Accounts</p><p id="kpi-accounts-count" class="value">0</p></article>
+          <article class="kpi"><p class="label">Transfers</p><p id="kpi-transfers-count" class="value">0</p></article>
+        </section>
+
+        <div id="customer-alert" class="alert"></div>
+
+        <section id="customer-views">
+          <div id="view-overview" class="view active">
+            <article class="panel" id="kyc-panel">
+              <h2>Complete KYC to activate account creation</h2>
+              <form id="kyc-form" class="form-row-2">
+                <div class="field">
+                  <label for="kyc_full_name">Full Name</label>
+                  <input id="kyc_full_name" name="kyc_full_name" minlength="2" required />
+                </div>
+                <div class="field">
+                  <label for="kyc_document_id">Document ID</label>
+                  <input id="kyc_document_id" name="kyc_document_id" minlength="3" required />
+                </div>
+                <button class="button button-primary" type="submit">Submit KYC</button>
+              </form>
+            </article>
+
+            <article class="panel">
+              <div class="panel-header">
+                <h2>Accounts</h2>
+              </div>
+              <div class="table-wrap">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Account ID</th>
+                      <th>Currency</th>
+                      <th>Balance</th>
+                      <th>Created</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="accounts-table-body"></tbody>
+                </table>
+              </div>
+            </article>
+
+            <article class="panel">
+              <h3>Create account</h3>
+              <form id="create-account-form" class="form-row-2">
+                <div class="field">
+                  <label for="currency">Currency</label>
+                  <select id="currency" name="currency" required>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                  </select>
+                </div>
+                <button type="submit" class="button button-primary">Create account</button>
+              </form>
+            </article>
+
+            <article class="panel">
+              <h3>Initial deposit / top-up</h3>
+              <form id="deposit-form" class="form-row-2">
+                <div class="field">
+                  <label for="deposit-account">Account</label>
+                  <select id="deposit-account" name="account_id" required></select>
+                </div>
+                <div class="field">
+                  <label for="deposit-amount">Amount</label>
+                  <input id="deposit-amount" name="amount" type="number" min="0.01" step="0.01" required />
+                </div>
+                <div class="field">
+                  <label for="deposit-reference">Reference</label>
+                  <input id="deposit-reference" name="reference_id" minlength="3" required />
+                </div>
+                <button type="submit" class="button button-primary">Post deposit</button>
+              </form>
+            </article>
+          </div>
+
+          <div id="view-transfer" class="view">
+            <article class="panel">
+              <h2>Transfer money</h2>
+              <form id="transfer-form" class="form-row-2">
+                <div class="field">
+                  <label for="transfer-from-account">From account</label>
+                  <select id="transfer-from-account" name="from_account" required></select>
+                </div>
+                <div class="field">
+                  <label for="transfer-to-account">To account</label>
+                  <select id="transfer-to-account" name="to_account" required></select>
+                </div>
+                <div class="field">
+                  <label for="transfer-amount">Amount</label>
+                  <input id="transfer-amount" name="amount" type="number" min="0.01" step="0.01" required />
+                </div>
+                <button type="submit" class="button button-primary">Initiate transfer</button>
+              </form>
+            </article>
+          </div>
+
+          <div id="view-history" class="view">
+            <article class="panel">
+              <h2>Transfer history</h2>
+              <div class="table-wrap">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>From</th>
+                      <th>To</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                      <th>Created</th>
+                    </tr>
+                  </thead>
+                  <tbody id="transfers-table-body"></tbody>
+                </table>
+              </div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-header">
+                <h3>Ledger entries</h3>
+                <div class="field" style="min-width: 220px">
+                  <label for="ledger-account">Account</label>
+                  <select id="ledger-account"></select>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Type</th>
+                      <th>Amount</th>
+                      <th>Reference</th>
+                      <th>Created</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ledger-table-body"></tbody>
+                </table>
+              </div>
+            </article>
+          </div>
+
+          <div id="view-profile" class="view">
+            <article class="panel">
+              <h2>Profile and KYC details</h2>
+              <div id="profile-card"></div>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="/assets/js/pages/customer.js"></script>
+  </body>
+</html>

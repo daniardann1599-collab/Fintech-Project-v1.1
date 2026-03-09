@@ -3,33 +3,83 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Banking Demo UI</title>
-    <style>
-      body { font-family: "Trebuchet MS", sans-serif; margin: 2rem; background: #f6f9ff; color: #1b2840; }
-      h1 { margin-bottom: 0.5rem; }
-      .card { background: #fff; border: 1px solid #dce4f2; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
-      button { padding: 0.5rem 1rem; border: 0; border-radius: 6px; background: #0077b6; color: #fff; cursor: pointer; }
-      input { padding: 0.4rem; margin-right: 0.4rem; }
-      pre { background: #0d1321; color: #d1e8ff; padding: 1rem; overflow: auto; }
-    </style>
+    <title>Northstar Bank | Digital Banking</title>
+    <link rel="stylesheet" href="/assets/css/main.css" />
   </head>
   <body>
-    <h1>Web Banking Demo</h1>
-    <p>Primary API interaction is via Swagger UI at <a href="http://localhost:8000/docs" target="_blank">/docs</a>.</p>
+    <div class="site-shell fade-up">
+      <header class="top-nav">
+        <a class="brand" href="/index.html">
+          <span class="brand-mark">NB</span>
+          <span class="title">Northstar Bank</span>
+        </a>
+        <div class="nav-actions">
+          <button id="continue-session" class="button button-ghost">Continue session</button>
+          <a href="/login.html" class="button button-ghost">Login</a>
+          <a href="/register.html" class="button button-primary">Open an account</a>
+        </div>
+      </header>
 
-    <div class="card">
-      <h2>Health Check</h2>
-      <button id="check-health">Check Backend Health</button>
-      <pre id="output">Click a button to run a request.</pre>
+      <section class="hero">
+        <article class="hero-copy">
+          <h1>Banking built for confidence, speed, and real control.</h1>
+          <p>
+            Northstar Bank combines secure digital onboarding, transparent ledger-driven accounting,
+            and always-on transfer operations. Open your account in minutes and manage it from anywhere.
+          </p>
+          <div class="hero-cta">
+            <a class="button button-primary" href="/register.html">Register now</a>
+            <a class="button button-ghost" href="/login.html">Sign in</a>
+          </div>
+        </article>
+
+        <aside class="hero-card">
+          <span class="feature-tag">Trusted Digital Banking</span>
+          <h3>Everything you need to get started</h3>
+          <div class="hero-stats">
+            <div class="stat-row"><span>Account opening</span><strong>Under 5 minutes</strong></div>
+            <div class="stat-row"><span>Internal transfers</span><strong>Real-time initiation</strong></div>
+            <div class="stat-row"><span>Audit visibility</span><strong>Admin-grade controls</strong></div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="section">
+        <h2>Banking Products & Services</h2>
+        <div class="grid-3">
+          <article class="card">
+            <span class="feature-tag">Daily Banking</span>
+            <h3>Current Accounts</h3>
+            <p>Create and manage multi-account profiles with secure access and transparent balance tracking.</p>
+          </article>
+          <article class="card">
+            <span class="feature-tag">Payments</span>
+            <h3>Internal Transfers</h3>
+            <p>Move funds between customer accounts with status-aware operations and traceable references.</p>
+          </article>
+          <article class="card">
+            <span class="feature-tag">Operations</span>
+            <h3>Audit & Compliance</h3>
+            <p>Every critical action is logged to support operational visibility and compliance workflows.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section card">
+        <h2>Start your banking journey</h2>
+        <p>
+          New to Northstar? Create a profile with KYC details, open accounts, and begin managing transfers from
+          a modern web dashboard.
+        </p>
+        <div class="hero-cta">
+          <a class="button button-primary" href="/register.html">Create personal profile</a>
+          <a class="button button-ghost" href="/login.html">Existing customer login</a>
+        </div>
+      </section>
+
+      <p class="footer-note">Northstar Bank Digital Platform | Secure API-powered banking experience</p>
     </div>
 
-    <div class="card">
-      <h2>Quick Register</h2>
-      <input id="email" type="email" placeholder="user@example.com" />
-      <input id="password" type="password" placeholder="password (8+)" />
-      <button id="register">Register</button>
-    </div>
-
-    <script src="app.js"></script>
+    <script type="module" src="/assets/js/pages/landing.js"></script>
   </body>
 </html>

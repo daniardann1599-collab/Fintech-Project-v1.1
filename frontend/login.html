@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login | Northstar Bank</title>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+  </head>
+  <body class="app-body">
+    <main class="auth-wrapper">
+      <section class="auth-card fade-up">
+        <a class="brand" href="/index.html">
+          <span class="brand-mark">NB</span>
+          <span class="title">Northstar Bank</span>
+        </a>
+        <h1>Login to online banking</h1>
+        <p class="auth-sub">Access accounts, transfers, and ledger history.</p>
+
+        <div id="login-alert" class="alert"></div>
+
+        <form id="login-form" class="form-grid">
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" minlength="8" required />
+          </div>
+          <button type="submit" class="button button-primary">Login</button>
+        </form>
+
+        <p class="auth-footer">No profile yet? <a id="go-register" href="/register.html"><strong>Register here</strong></a></p>
+      </section>
+    </main>
+
+    <script type="module" src="/assets/js/pages/login.js"></script>
+  </body>
+</html>
