@@ -285,6 +285,12 @@ textarea {
   border-color: #8ac0ec;
 }
 
+.field input::placeholder,
+.field textarea::placeholder {
+  color: #9aa8bb;
+  opacity: 1;
+}
+
 .inline-muted {
   color: var(--muted);
   font-size: 0.92rem;

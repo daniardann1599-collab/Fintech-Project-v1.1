@@ -91,7 +91,7 @@
                 <form id="admin-lookup-customer-form" class="form-row-2">
                   <div class="field">
                     <label for="lookup-customer-id">Lookup customer by ID</label>
-                    <input id="lookup-customer-id" name="customer_id" type="number" min="1" required />
+                    <input id="lookup-customer-id" name="customer_id" type="number" min="1" placeholder="e.g. 1" required />
                   </div>
                   <button type="submit" class="button button-ghost">Load customer</button>
                 </form>
@@ -99,15 +99,15 @@
                 <form id="admin-create-customer-form" class="form-row-2">
                   <div class="field">
                     <label for="admin-customer-user-id">User ID</label>
-                    <input id="admin-customer-user-id" name="user_id" type="number" min="1" required />
+                    <input id="admin-customer-user-id" name="user_id" type="number" min="1" placeholder="e.g. 2" required />
                   </div>
                   <div class="field">
                     <label for="admin-customer-fullname">Full name</label>
-                    <input id="admin-customer-fullname" name="kyc_full_name" minlength="2" required />
+                    <input id="admin-customer-fullname" name="kyc_full_name" minlength="2" placeholder="Enter full customer name" required />
                   </div>
                   <div class="field">
                     <label for="admin-customer-doc">Document ID</label>
-                    <input id="admin-customer-doc" name="kyc_document_id" minlength="3" required />
+                    <input id="admin-customer-doc" name="kyc_document_id" minlength="3" placeholder="ID-12345" required />
                   </div>
                   <button type="submit" class="button button-primary">Create customer</button>
                 </form>
@@ -115,7 +115,7 @@
                 <form id="admin-update-status-form" class="form-row-2">
                   <div class="field">
                     <label for="admin-status-customer-id">Customer ID</label>
-                    <input id="admin-status-customer-id" name="customer_id" type="number" min="1" required />
+                    <input id="admin-status-customer-id" name="customer_id" type="number" min="1" placeholder="e.g. 1" required />
                   </div>
                   <div class="field">
                     <label for="admin-status">Status</label>
@@ -167,11 +167,11 @@
                 </div>
                 <div class="field">
                   <label for="adjust-amount">Amount</label>
-                  <input id="adjust-amount" name="amount" type="number" min="0.01" step="0.01" required />
+                  <input id="adjust-amount" name="amount" type="number" min="0.01" step="0.01" placeholder="250.00" required />
                 </div>
                 <div class="field">
                   <label for="adjust-reference">Reference ID</label>
-                  <input id="adjust-reference" name="reference_id" minlength="3" required />
+                  <input id="adjust-reference" name="reference_id" minlength="3" placeholder="manual-adjust-001" required />
                 </div>
                 <button type="submit" class="button button-primary">Apply operation</button>
               </form>

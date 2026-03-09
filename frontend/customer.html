@@ -45,11 +45,11 @@
               <form id="kyc-form" class="form-row-2">
                 <div class="field">
                   <label for="kyc_full_name">Full Name</label>
-                  <input id="kyc_full_name" name="kyc_full_name" minlength="2" required />
+                  <input id="kyc_full_name" name="kyc_full_name" minlength="2" placeholder="Enter your full name" required />
                 </div>
                 <div class="field">
                   <label for="kyc_document_id">Document ID</label>
-                  <input id="kyc_document_id" name="kyc_document_id" minlength="3" required />
+                  <input id="kyc_document_id" name="kyc_document_id" minlength="3" placeholder="ID-12345" required />
                 </div>
                 <button class="button button-primary" type="submit">Submit KYC</button>
               </form>
@@ -99,11 +99,11 @@
                 </div>
                 <div class="field">
                   <label for="deposit-amount">Amount</label>
-                  <input id="deposit-amount" name="amount" type="number" min="0.01" step="0.01" required />
+                  <input id="deposit-amount" name="amount" type="number" min="0.01" step="0.01" placeholder="100.00" required />
                 </div>
                 <div class="field">
                   <label for="deposit-reference">Reference</label>
-                  <input id="deposit-reference" name="reference_id" minlength="3" required />
+                  <input id="deposit-reference" name="reference_id" minlength="3" placeholder="salary-topup-001" required />
                 </div>
                 <button type="submit" class="button button-primary">Post deposit</button>
               </form>
@@ -124,7 +124,7 @@
                 </div>
                 <div class="field">
                   <label for="transfer-amount">Amount</label>
-                  <input id="transfer-amount" name="amount" type="number" min="0.01" step="0.01" required />
+                  <input id="transfer-amount" name="amount" type="number" min="0.01" step="0.01" placeholder="50.00" required />
                 </div>
                 <button type="submit" class="button button-primary">Initiate transfer</button>
               </form>
