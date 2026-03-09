@@ -72,7 +72,7 @@ function renderAudit() {
 
 function renderTransfers() {
   if (!state.transfers.length) {
-    els.transferBody.innerHTML = `<tr><td colspan="6">No transfers available.</td></tr>`;
+    els.transferBody.innerHTML = `<tr><td colspan="7">No transfers available.</td></tr>`;
     return;
   }
 
@@ -86,6 +86,13 @@ function renderTransfers() {
         <td>${formatCurrency(transfer.amount, state.accounts[0]?.currency || "USD")}</td>
         <td><span class="pill pending">${transfer.status}</span></td>
         <td>${formatDate(transfer.created_at)}</td>
+        <td>
+          ${
+            transfer.status === "PENDING"
+              ? `<button class="button button-ghost admin-execute-transfer-btn" data-transfer-id="${transfer.id}">Execute</button>`
+              : `<span class="inline-muted">-</span>`
+          }
+        </td>
       </tr>
     `
     )
@@ -300,6 +307,27 @@ function bindActions() {
       showAlert(els.alert, "success", `Outbox flush complete. Processed: ${flushed.length}`);
     } catch (error) {
       showAlert(els.alert, "error", toErrorMessage(error));
+    }
+  });
+
+  els.transferBody?.addEventListener("click", async (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (!target.classList.contains("admin-execute-transfer-btn")) return;
+
+    const transferId = Number(target.dataset.transferId);
+    if (!transferId) return;
+
+    clearAlert(els.alert);
+    target.setAttribute("disabled", "true");
+    try {
+      await apiRequest(`/transfers/${transferId}/execute`, { method: "POST" });
+      showAlert(els.alert, "success", `Transfer #${transferId} executed.`);
+      await loadAdminData();
+    } catch (error) {
+      showAlert(els.alert, "error", toErrorMessage(error));
+    } finally {
+      target.removeAttribute("disabled");
     }
   });
 }

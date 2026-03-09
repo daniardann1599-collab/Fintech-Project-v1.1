@@ -70,7 +70,7 @@ function renderAccounts() {
 
 function renderTransfers() {
   if (!state.transfers.length) {
-    els.transfersTableBody.innerHTML = `<tr><td colspan="6">No transfers found.</td></tr>`;
+    els.transfersTableBody.innerHTML = `<tr><td colspan="7">No transfers found.</td></tr>`;
     return;
   }
 
@@ -84,6 +84,13 @@ function renderTransfers() {
         <td>${formatCurrency(transfer.amount, state.accounts[0]?.currency || "USD")}</td>
         <td><span class="pill pending">${transfer.status}</span></td>
         <td>${formatDate(transfer.created_at)}</td>
+        <td>
+          ${
+            transfer.status === "PENDING"
+              ? `<button class="button button-ghost execute-transfer-btn" data-transfer-id="${transfer.id}">Execute</button>`
+              : `<span class="inline-muted">-</span>`
+          }
+        </td>
       </tr>
     `
     )
@@ -322,6 +329,27 @@ function bindForms() {
       await refreshDashboard();
     } catch (error) {
       showAlert(els.alert, "error", toErrorMessage(error));
+    }
+  });
+
+  els.transfersTableBody?.addEventListener("click", async (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (!target.classList.contains("execute-transfer-btn")) return;
+
+    const transferId = Number(target.dataset.transferId);
+    if (!transferId) return;
+
+    clearAlert(els.alert);
+    target.setAttribute("disabled", "true");
+    try {
+      await apiRequest(`/transfers/${transferId}/execute`, { method: "POST" });
+      showAlert(els.alert, "success", `Transfer #${transferId} executed.`);
+      await refreshDashboard();
+    } catch (error) {
+      showAlert(els.alert, "error", toErrorMessage(error));
+    } finally {
+      target.removeAttribute("disabled");
     }
   });
 

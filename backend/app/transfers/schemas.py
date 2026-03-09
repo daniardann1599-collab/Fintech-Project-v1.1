@@ -22,3 +22,9 @@ class TransferResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class TransferExecutionResponse(BaseModel):
+    transfer: TransferResponse
+    from_account_balance: Decimal
+    to_account_balance: Decimal

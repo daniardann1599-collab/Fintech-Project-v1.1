@@ -21,3 +21,20 @@ class LedgerEntryResponse(BaseModel):
 class AccountBalanceResponse(BaseModel):
     account_id: int
     balance: Decimal
+
+
+class LedgerVerificationResponse(BaseModel):
+    account_id: int
+    currency: str
+    entries_count: int
+    credits_total: Decimal
+    debits_total: Decimal
+    calculated_balance: Decimal
+    is_valid: bool
+    issues: list[str]
+
+
+class SystemLedgerVerificationResponse(BaseModel):
+    checked_accounts: int
+    invalid_accounts: int
+    results: list[LedgerVerificationResponse]

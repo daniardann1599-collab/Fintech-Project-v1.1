@@ -7,8 +7,12 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.events.service import enqueue_event
 from app.models.entities import Transfer, User, UserRole
-from app.transfers.schemas import TransferInitiateRequest, TransferResponse
-from app.transfers.service import initiate_transfer
+from app.transfers.schemas import (
+    TransferExecutionResponse,
+    TransferInitiateRequest,
+    TransferResponse,
+)
+from app.transfers.service import execute_transfer, initiate_transfer
 
 router = APIRouter(prefix="/transfers", tags=["transfers"])
 
@@ -57,6 +61,52 @@ def initiate_transfer_endpoint(
     except ValueError as exc:
         db.rollback()
         log_action(db, current_user.id, "transfer.initiate", "FAILED")
+        db.commit()
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/{transfer_id}/execute", response_model=TransferExecutionResponse)
+def execute_transfer_endpoint(
+    transfer_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> TransferExecutionResponse:
+    try:
+        transfer, from_balance, to_balance = execute_transfer(db, transfer_id, current_user)
+        enqueue_event(
+            db,
+            aggregate_type="transfer",
+            aggregate_id=str(transfer.id),
+            event_type="TRANSFER_EXECUTED",
+            payload={
+                "transfer_id": transfer.id,
+                "from_account": transfer.from_account,
+                "to_account": transfer.to_account,
+                "amount": str(transfer.amount),
+                "status": transfer.status,
+            },
+        )
+        log_action(db, current_user.id, "transfer.execute", "SUCCESS")
+        db.commit()
+        db.refresh(transfer)
+        return TransferExecutionResponse(
+            transfer=transfer,
+            from_account_balance=from_balance,
+            to_account_balance=to_balance,
+        )
+    except LookupError as exc:
+        db.rollback()
+        log_action(db, current_user.id, "transfer.execute", "FAILED")
+        db.commit()
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except PermissionError as exc:
+        db.rollback()
+        log_action(db, current_user.id, "transfer.execute", "FAILED")
+        db.commit()
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except ValueError as exc:
+        db.rollback()
+        log_action(db, current_user.id, "transfer.execute", "FAILED")
         db.commit()
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 

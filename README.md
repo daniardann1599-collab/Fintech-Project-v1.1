@@ -4,9 +4,14 @@
 
 ```mermaid
 flowchart LR
-  C[Client] --> API[FastAPI Backend API]
+  C[Client Web App] --> AUTH[JWT Auth]
+  AUTH --> API[FastAPI Backend API]
   API --> DB[(PostgreSQL Database)]
-  DB --> OUTBOX[Event Layer\nDatabase Outbox Pattern]
+  API --> AUDIT[(Audit Logs)]
+  API --> OUTBOX[(Outbox Events)]
+  API --> WS[WebSocket Layer]
+  DB --> LEDGER[Ledger Entries]
+  LEDGER --> VERIFY[Ledger Verification APIs]
 ```
 
 Core principles:
@@ -32,6 +37,7 @@ Core principles:
 - ORM: SQLAlchemy
 - Events: Database outbox table (`outbox_events`)
 - Frontend: JavaScript (minimal demo)
+- Frontend: JavaScript multi-page banking UI (landing, auth, customer, admin)
 - Runtime: Docker Compose
 
 ## Run
@@ -66,8 +72,11 @@ Protected:
 - `POST /accounts/{id}/withdraw`
 - `GET /ledger/accounts/{account_id}/entries`
 - `POST /transfers/initiate`
+- `POST /transfers/{transfer_id}/execute` (full transfer execution)
 - `GET /transfers`
 - `GET /transfers/{transfer_id}`
+- `GET /ledger/accounts/{account_id}/verify`
+- `GET /ledger/verify/system` (admin)
 - `GET /audit/logs` (admin)
 - `GET /audit/outbox` (admin)
 - `POST /audit/outbox/flush` (admin)
@@ -90,6 +99,13 @@ Yes, direct API execution from Swagger UI is supported.
 - Ledger entries are append-only by API design.
 - No balance mutation happens outside `ledger_entries`.
 - Balance = `SUM(CREDIT) - SUM(DEBIT)`.
+- Verification endpoints check ledger integrity at account and system scope.
+
+## Extra Documentation
+
+- Security notes: `docs/security_notes.md`
+- Final architecture with security/audit/JWT flow: `docs/architecture_final.md`
+- Archived Swagger v0.1 draft notes: `docs/swagger_v0.1.md`
 
 ## Mandatory Backend/Security Checklist
 
@@ -135,3 +151,11 @@ See `.env.example` for all configurable values.
 Important:
 - Use strong `JWT_SECRET` in real environments.
 - Do not commit `.env` to GitHub.
+
+## CI/CD
+
+- GitHub Actions pipeline: `.github/workflows/ci.yml`
+- Runs on push/PR:
+  - Ruff lint checks
+  - Pytest unit tests
+  - Optional Docker backend build validation
