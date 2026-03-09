@@ -1,0 +1,1102 @@
+openapi: 3.1.0
+info:
+  title: Modular Monolith Banking API
+  description: Modular Monolith Banking API with JWT auth, PostgreSQL ledger, audit
+    logging, and outbox events.
+  version: 1.0.0
+paths:
+  /health:
+    get:
+      summary: Healthcheck
+      operationId: healthcheck_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  type: string
+                type: object
+                title: Response Healthcheck Health Get
+  /architecture:
+    get:
+      summary: Architecture
+      operationId: architecture_architecture_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Architecture Architecture Get
+  /register:
+    post:
+      tags:
+      - auth
+      summary: Register
+      operationId: register_register_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegisterRequest'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /auth/token:
+    post:
+      tags:
+      - auth
+      summary: Login For Access Token
+      operationId: login_for_access_token_auth_token_post
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Body_login_for_access_token_auth_token_post'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /auth/me:
+    get:
+      tags:
+      - auth
+      summary: Read Current User
+      operationId: read_current_user_auth_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+      security:
+      - OAuth2PasswordBearer: []
+  /customers:
+    post:
+      tags:
+      - customers
+      summary: Create Customer Endpoint
+      operationId: create_customer_endpoint_customers_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerCreateRequest'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - OAuth2PasswordBearer: []
+  /customers/{customer_id}:
+    get:
+      tags:
+      - customers
+      summary: Get Customer Endpoint
+      operationId: get_customer_endpoint_customers__customer_id__get
+      security:
+      - OAuth2PasswordBearer: []
+      parameters:
+      - name: customer_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Customer Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /customers/{customer_id}/status:
+    patch:
+      tags:
+      - customers
+      summary: Update Customer Status Endpoint
+      operationId: update_customer_status_endpoint_customers__customer_id__status_patch
+      security:
+      - OAuth2PasswordBearer: []
+      parameters:
+      - name: customer_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Customer Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerStatusUpdateRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /accounts:
+    get:
+      tags:
+      - accounts
+      summary: List Accounts Endpoint
+      operationId: list_accounts_endpoint_accounts_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/AccountResponse'
+                type: array
+                title: Response List Accounts Endpoint Accounts Get
+      security:
+      - OAuth2PasswordBearer: []
+    post:
+      tags:
+      - accounts
+      summary: Create Account Endpoint
+      operationId: create_account_endpoint_accounts_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountCreateRequest'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - OAuth2PasswordBearer: []
+  /accounts/{account_id}:
+    get:
+      tags:
+      - accounts
+      summary: Get Account Endpoint
+      operationId: get_account_endpoint_accounts__account_id__get
+      security:
+      - OAuth2PasswordBearer: []
+      parameters:
+      - name: account_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Account Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /accounts/{account_id}/balance:
+    get:
+      tags:
+      - accounts
+      summary: Get Balance Endpoint
+      operationId: get_balance_endpoint_accounts__account_id__balance_get
+      security:
+      - OAuth2PasswordBearer: []
+      parameters:
+      - name: account_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Account Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /accounts/{account_id}/deposit:
+    post:
+      tags:
+      - accounts
+      summary: Deposit Endpoint
+      operationId: deposit_endpoint_accounts__account_id__deposit_post
+      security:
+      - OAuth2PasswordBearer: []
+      parameters:
+      - name: account_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Account Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FundingRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /accounts/{account_id}/withdraw:
+    post:
+      tags:
+      - accounts
+      summary: Withdraw Endpoint
+      operationId: withdraw_endpoint_accounts__account_id__withdraw_post
+      security:
+      - OAuth2PasswordBearer: []
+      parameters:
+      - name: account_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Account Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FundingRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /ledger/accounts/{account_id}/entries:
+    get:
+      tags:
+      - ledger
+      summary: Get Account Ledger Entries
+      operationId: get_account_ledger_entries_ledger_accounts__account_id__entries_get
+      security:
+      - OAuth2PasswordBearer: []
+      parameters:
+      - name: account_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Account Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LedgerEntryResponse'
+                title: Response Get Account Ledger Entries Ledger Accounts  Account
+                  Id  Entries Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /ledger/accounts/{account_id}/verify:
+    get:
+      tags:
+      - ledger
+      summary: Verify Account Ledger Endpoint
+      operationId: verify_account_ledger_endpoint_ledger_accounts__account_id__verify_get
+      security:
+      - OAuth2PasswordBearer: []
+      parameters:
+      - name: account_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Account Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LedgerVerificationResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /ledger/verify/system:
+    get:
+      tags:
+      - ledger
+      summary: Verify System Ledger Endpoint
+      operationId: verify_system_ledger_endpoint_ledger_verify_system_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemLedgerVerificationResponse'
+      security:
+      - OAuth2PasswordBearer: []
+  /transfers/initiate:
+    post:
+      tags:
+      - transfers
+      summary: Initiate Transfer Endpoint
+      operationId: initiate_transfer_endpoint_transfers_initiate_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferInitiateRequest'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - OAuth2PasswordBearer: []
+  /transfers/{transfer_id}/execute:
+    post:
+      tags:
+      - transfers
+      summary: Execute Transfer Endpoint
+      operationId: execute_transfer_endpoint_transfers__transfer_id__execute_post
+      security:
+      - OAuth2PasswordBearer: []
+      parameters:
+      - name: transfer_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Transfer Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferExecutionResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /transfers:
+    get:
+      tags:
+      - transfers
+      summary: List Transfers Endpoint
+      operationId: list_transfers_endpoint_transfers_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/TransferResponse'
+                type: array
+                title: Response List Transfers Endpoint Transfers Get
+      security:
+      - OAuth2PasswordBearer: []
+  /transfers/{transfer_id}:
+    get:
+      tags:
+      - transfers
+      summary: Get Transfer Endpoint
+      operationId: get_transfer_endpoint_transfers__transfer_id__get
+      security:
+      - OAuth2PasswordBearer: []
+      parameters:
+      - name: transfer_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Transfer Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /audit/logs:
+    get:
+      tags:
+      - audit
+      summary: Get Audit Logs
+      operationId: get_audit_logs_audit_logs_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/AuditLogResponse'
+                type: array
+                title: Response Get Audit Logs Audit Logs Get
+      security:
+      - OAuth2PasswordBearer: []
+  /audit/outbox:
+    get:
+      tags:
+      - audit
+      summary: Get Outbox Events
+      operationId: get_outbox_events_audit_outbox_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/OutboxEventResponse'
+                type: array
+                title: Response Get Outbox Events Audit Outbox Get
+      security:
+      - OAuth2PasswordBearer: []
+  /audit/outbox/flush:
+    post:
+      tags:
+      - audit
+      summary: Flush Outbox
+      operationId: flush_outbox_audit_outbox_flush_post
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/OutboxEventResponse'
+                type: array
+                title: Response Flush Outbox Audit Outbox Flush Post
+      security:
+      - OAuth2PasswordBearer: []
+components:
+  schemas:
+    AccountCreateRequest:
+      properties:
+        customer_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Customer Id
+        currency:
+          type: string
+          maxLength: 3
+          minLength: 3
+          title: Currency
+      type: object
+      required:
+      - customer_id
+      - currency
+      title: AccountCreateRequest
+    AccountResponse:
+      properties:
+        id:
+          type: integer
+          title: Id
+        customer_id:
+          type: integer
+          title: Customer Id
+        currency:
+          type: string
+          title: Currency
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      type: object
+      required:
+      - id
+      - customer_id
+      - currency
+      - created_at
+      title: AccountResponse
+    AuditLogResponse:
+      properties:
+        id:
+          type: integer
+          title: Id
+        user_id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: User Id
+        action:
+          type: string
+          title: Action
+        timestamp:
+          type: string
+          format: date-time
+          title: Timestamp
+        outcome:
+          type: string
+          title: Outcome
+      type: object
+      required:
+      - id
+      - user_id
+      - action
+      - timestamp
+      - outcome
+      title: AuditLogResponse
+    BalanceResponse:
+      properties:
+        account_id:
+          type: integer
+          title: Account Id
+        balance:
+          type: string
+          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Balance
+      type: object
+      required:
+      - account_id
+      - balance
+      title: BalanceResponse
+    Body_login_for_access_token_auth_token_post:
+      properties:
+        grant_type:
+          anyOf:
+          - type: string
+            pattern: ^password$
+          - type: 'null'
+          title: Grant Type
+        username:
+          type: string
+          title: Username
+        password:
+          type: string
+          format: password
+          title: Password
+        scope:
+          type: string
+          title: Scope
+          default: ''
+        client_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Client Id
+        client_secret:
+          anyOf:
+          - type: string
+          - type: 'null'
+          format: password
+          title: Client Secret
+      type: object
+      required:
+      - username
+      - password
+      title: Body_login_for_access_token_auth_token_post
+    CustomerCreateRequest:
+      properties:
+        user_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: User Id
+        kyc_full_name:
+          type: string
+          maxLength: 255
+          minLength: 2
+          title: Kyc Full Name
+        kyc_document_id:
+          type: string
+          maxLength: 100
+          minLength: 3
+          title: Kyc Document Id
+      type: object
+      required:
+      - user_id
+      - kyc_full_name
+      - kyc_document_id
+      title: CustomerCreateRequest
+    CustomerResponse:
+      properties:
+        id:
+          type: integer
+          title: Id
+        user_id:
+          type: integer
+          title: User Id
+        status:
+          $ref: '#/components/schemas/CustomerStatus'
+        kyc_full_name:
+          type: string
+          title: Kyc Full Name
+        kyc_document_id:
+          type: string
+          title: Kyc Document Id
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      type: object
+      required:
+      - id
+      - user_id
+      - status
+      - kyc_full_name
+      - kyc_document_id
+      - created_at
+      title: CustomerResponse
+    CustomerStatus:
+      type: string
+      enum:
+      - PENDING
+      - VERIFIED
+      - SUSPENDED
+      title: CustomerStatus
+    CustomerStatusUpdateRequest:
+      properties:
+        status:
+          $ref: '#/components/schemas/CustomerStatus'
+      type: object
+      required:
+      - status
+      title: CustomerStatusUpdateRequest
+    EventStatus:
+      type: string
+      enum:
+      - PENDING
+      - PROCESSED
+      title: EventStatus
+    FundingRequest:
+      properties:
+        amount:
+          anyOf:
+          - type: number
+            exclusiveMinimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Amount
+        reference_id:
+          type: string
+          maxLength: 100
+          minLength: 3
+          title: Reference Id
+      type: object
+      required:
+      - amount
+      - reference_id
+      title: FundingRequest
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    LedgerEntryResponse:
+      properties:
+        id:
+          type: integer
+          title: Id
+        account_id:
+          type: integer
+          title: Account Id
+        type:
+          $ref: '#/components/schemas/LedgerEntryType'
+        amount:
+          type: string
+          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Amount
+        reference_id:
+          type: string
+          title: Reference Id
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      type: object
+      required:
+      - id
+      - account_id
+      - type
+      - amount
+      - reference_id
+      - created_at
+      title: LedgerEntryResponse
+    LedgerEntryType:
+      type: string
+      enum:
+      - DEBIT
+      - CREDIT
+      title: LedgerEntryType
+    LedgerVerificationResponse:
+      properties:
+        account_id:
+          type: integer
+          title: Account Id
+        currency:
+          type: string
+          title: Currency
+        entries_count:
+          type: integer
+          title: Entries Count
+        credits_total:
+          type: string
+          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Credits Total
+        debits_total:
+          type: string
+          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Debits Total
+        calculated_balance:
+          type: string
+          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Calculated Balance
+        is_valid:
+          type: boolean
+          title: Is Valid
+        issues:
+          items:
+            type: string
+          type: array
+          title: Issues
+      type: object
+      required:
+      - account_id
+      - currency
+      - entries_count
+      - credits_total
+      - debits_total
+      - calculated_balance
+      - is_valid
+      - issues
+      title: LedgerVerificationResponse
+    OutboxEventResponse:
+      properties:
+        id:
+          type: integer
+          title: Id
+        aggregate_type:
+          type: string
+          title: Aggregate Type
+        aggregate_id:
+          type: string
+          title: Aggregate Id
+        event_type:
+          type: string
+          title: Event Type
+        payload:
+          additionalProperties: true
+          type: object
+          title: Payload
+        status:
+          $ref: '#/components/schemas/EventStatus'
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        processed_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Processed At
+      type: object
+      required:
+      - id
+      - aggregate_type
+      - aggregate_id
+      - event_type
+      - payload
+      - status
+      - created_at
+      - processed_at
+      title: OutboxEventResponse
+    SystemLedgerVerificationResponse:
+      properties:
+        checked_accounts:
+          type: integer
+          title: Checked Accounts
+        invalid_accounts:
+          type: integer
+          title: Invalid Accounts
+        results:
+          items:
+            $ref: '#/components/schemas/LedgerVerificationResponse'
+          type: array
+          title: Results
+      type: object
+      required:
+      - checked_accounts
+      - invalid_accounts
+      - results
+      title: SystemLedgerVerificationResponse
+    TokenResponse:
+      properties:
+        access_token:
+          type: string
+          title: Access Token
+        token_type:
+          type: string
+          title: Token Type
+          default: bearer
+      type: object
+      required:
+      - access_token
+      title: TokenResponse
+    TransferExecutionResponse:
+      properties:
+        transfer:
+          $ref: '#/components/schemas/TransferResponse'
+        from_account_balance:
+          type: string
+          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: From Account Balance
+        to_account_balance:
+          type: string
+          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: To Account Balance
+      type: object
+      required:
+      - transfer
+      - from_account_balance
+      - to_account_balance
+      title: TransferExecutionResponse
+    TransferInitiateRequest:
+      properties:
+        from_account:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: From Account
+        to_account:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: To Account
+        amount:
+          anyOf:
+          - type: number
+            exclusiveMinimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Amount
+      type: object
+      required:
+      - from_account
+      - to_account
+      - amount
+      title: TransferInitiateRequest
+    TransferResponse:
+      properties:
+        id:
+          type: integer
+          title: Id
+        from_account:
+          type: integer
+          title: From Account
+        to_account:
+          type: integer
+          title: To Account
+        amount:
+          type: string
+          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Amount
+        status:
+          $ref: '#/components/schemas/TransferStatus'
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      type: object
+      required:
+      - id
+      - from_account
+      - to_account
+      - amount
+      - status
+      - created_at
+      title: TransferResponse
+    TransferStatus:
+      type: string
+      enum:
+      - PENDING
+      - COMPLETED
+      - FAILED
+      title: TransferStatus
+    UserRegisterRequest:
+      properties:
+        email:
+          type: string
+          format: email
+          title: Email
+        password:
+          type: string
+          maxLength: 128
+          minLength: 8
+          title: Password
+        role:
+          $ref: '#/components/schemas/UserRole'
+          default: CUSTOMER
+      type: object
+      required:
+      - email
+      - password
+      title: UserRegisterRequest
+    UserResponse:
+      properties:
+        id:
+          type: integer
+          title: Id
+        email:
+          type: string
+          format: email
+          title: Email
+        role:
+          $ref: '#/components/schemas/UserRole'
+      type: object
+      required:
+      - id
+      - email
+      - role
+      title: UserResponse
+    UserRole:
+      type: string
+      enum:
+      - ADMIN
+      - CUSTOMER
+      title: UserRole
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+  securitySchemes:
+    OAuth2PasswordBearer:
+      type: oauth2
+      flows:
+        password:
+          scopes: {}
+          tokenUrl: /auth/token
