@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: banking
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - banking_pg_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/banking
+      JWT_SECRET: super-secret-jwt-key
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  frontend:
+    image: nginx:1.29-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ../frontend:/usr/share/nginx/html:ro
+    depends_on:
+      - backend
+
+volumes:
+  banking_pg_data:
