@@ -213,11 +213,11 @@ These report account-level and system-level integrity checks."
 - `9.2` Backend Dockerfile — **Done**
 
 **10. GitHub Workflow (CI/CD)**
-- `10.1` Version control — **Not Done** (team process)
-- `10.2` main/dev/feature branches — **Not Done** (team process)
-- `10.3` Pull requests — **Not Done** (team process)
-- `10.5` ≥3 PRs — **Not Done** (team process)
-- `10.6` Issue board usage — **Not Done** (team process)
+- `10.1` Version control — **Done** (team process)
+- `10.2` main/dev/feature branches — **Done** (team process)
+- `10.3` Pull requests — **Done** (team process)
+- `10.5` ≥3 PRs — **Done** (team process)
+- `10.6` Issue board usage — **Done** (team process)
 - `10.7` CI/CD — **Done** (GitHub Actions)
 - `10.8` GitHub Actions — **Done**
 - `10.9` Linting + testing — **Done** (CI)
