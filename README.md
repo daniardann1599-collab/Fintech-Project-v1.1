@@ -1,6 +1,6 @@
 # Modular Monolith Web Banking System
 
-## Architecture Scheme
+## Architecture Scheme (final detailed version)
 
 ```mermaid
 flowchart LR
@@ -20,6 +20,7 @@ flowchart LR
   DB --> Ledger["Ledger Entries\nSingle Source of Truth"]
   Ledger --> Verify["Ledger Verification APIs"]
 ```
+## Architecture Scheme
 
 ```mermaid
 flowchart LR
