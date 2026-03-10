@@ -1,5 +1,25 @@
 # Modular Monolith Web Banking System
 
+## Architecture Scheme (final detailed version)
+
+```mermaid
+flowchart LR
+  Client["Client Web App"] --> Auth["Auth Layer (JWT)"]
+  Auth --> API["FastAPI Modular Monolith\nauth / customers / accounts / ledger / transfers / audit"]
+
+  API --> DB[(PostgreSQL)]
+  API --> Audit["Audit Logs"]
+  API --> Outbox["Outbox Events"]
+  Outbox --> WS["WebSocket Event Stream"]
+
+  API --> RBAC["RBAC Guard\nADMIN / CUSTOMER"]
+  API --> Rate["Rate Limiter"]
+  API --> Validate["Input Validation"]
+  API --> StructLogs["Structured Request Logs"]
+
+  DB --> Ledger["Ledger Entries\nSingle Source of Truth"]
+  Ledger --> Verify["Ledger Verification APIs"]
+```
 ## Architecture Scheme
 
 ```mermaid
