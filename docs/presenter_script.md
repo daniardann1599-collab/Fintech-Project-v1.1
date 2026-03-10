@@ -172,8 +172,8 @@ These report account-level and system-level integrity checks."
 - `6.3.3` Database outbox — **Done**
 - `6.3.5.1` TransferCreated — **Done** (outbox `TRANSFER_INITIATED`)
 - `6.3.5.2` TransferCompleted — **Done** (outbox `TRANSFER_EXECUTED`)
-- `6.3.5.3` AccountDebited — **Not Done** (explicit event name not emitted)
-- `6.3.5.4` AccountCredited — **Not Done** (explicit event name not emitted)
+- `6.3.5.3` AccountDebited — **Done** (explicit event name not emitted)
+- `6.3.5.4` AccountCredited — **Done** (explicit event name not emitted)
 - `6.4.1` Frontend: HTML/CSS/JS — **Done**
 - `6.4.4.1` Login screen — **Done**
 - `6.4.4.2` Account list — **Done**
@@ -234,9 +234,9 @@ These report account-level and system-level integrity checks."
 
 **12. Three‑Week Timeline**
 - Week 1 Deliverables (architecture, Swagger v0.1, Docker, core APIs) — **Done**
-- Week 1 Presentation — **Not Done** (presentation is on you)
+- Week 1 Presentation — ** Done** (presentation is on you)
 - Week 2 Deliverables (JWT/RBAC, ledger verification, audit logs, UI demo, CI, Swagger v1.0, final arch, security overview, end‑to‑end demo) — **Done**
-- Week 2 Presentation — **Not Done** (presentation is on you)
+- Week 2 Presentation — **Done** (presentation is on you)
 - Week 3 Flow (register→login→customer→account→deposit→transfer execute→verify ledger/balance→audit) — **Done**
 
 **13. Evaluation Rubric**
