@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
     cors_allowed_origins: str = "*"
-    rate_limit_requests: int = 120
+    rate_limit_requests: int = 50
     rate_limit_window_seconds: int = 60
     log_level: str = "INFO"
     websocket_poll_seconds: int = 2
