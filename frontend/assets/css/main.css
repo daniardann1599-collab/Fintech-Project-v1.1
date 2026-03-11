@@ -400,7 +400,7 @@ textarea {
 .kpi-grid {
   margin: 1rem 0;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 0.8rem;
 }
 
@@ -501,6 +501,26 @@ textarea {
 .pill.success {
   background: #e5f8ed;
   color: #1d7a4f;
+}
+
+.pill.danger {
+  background: #ffe9ea;
+  color: var(--danger);
+}
+
+.pnl-positive {
+  color: var(--ok);
+  font-weight: 700;
+}
+
+.pnl-negative {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.pnl-neutral {
+  color: var(--muted);
+  font-weight: 700;
 }
 
 .footer-note {

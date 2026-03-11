@@ -1,3 +1,31 @@
-from app.models.entities import Account, AuditLog, Customer, LedgerEntry, OutboxEvent, Transfer, User
+from app.models.entities import (
+    Account,
+    AuditLog,
+    Card,
+    Customer,
+    InvestmentAsset,
+    InvestmentPosition,
+    InvestmentTransaction,
+    LedgerEntry,
+    Loan,
+    OutboxEvent,
+    TimeDeposit,
+    Transfer,
+    User,
+)
 
-__all__ = ["User", "Customer", "Account", "LedgerEntry", "Transfer", "AuditLog", "OutboxEvent"]
+__all__ = [
+    "User",
+    "Customer",
+    "Account",
+    "LedgerEntry",
+    "Transfer",
+    "AuditLog",
+    "OutboxEvent",
+    "InvestmentAsset",
+    "InvestmentPosition",
+    "InvestmentTransaction",
+    "TimeDeposit",
+    "Loan",
+    "Card",
+]

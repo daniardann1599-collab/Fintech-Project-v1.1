@@ -14,11 +14,21 @@ export function clearAlert(element) {
 
 export function formatCurrency(amount, currency = "USD") {
   const numeric = Number(amount || 0);
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 2,
-  }).format(numeric);
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 2,
+    }).format(numeric);
+  } catch (error) {
+    return `${numeric.toFixed(2)} ${currency}`;
+  }
+}
+
+export function formatPercent(value) {
+  const numeric = Number(value || 0);
+  const formatted = numeric.toFixed(2);
+  return `${numeric >= 0 ? "+" : ""}${formatted}%`;
 }
 
 export function formatDate(value) {

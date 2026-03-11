@@ -15,9 +15,12 @@
         </a>
         <nav id="customer-nav" class="nav-menu">
           <button class="nav-link active" data-view="overview"><span class="label">Account overview</span></button>
+          <button class="nav-link" data-view="assets"><span class="label">Assets</span></button>
           <button class="nav-link" data-view="transfer"><span class="label">Transfer money</span></button>
+          <button class="nav-link" data-view="deposits"><span class="label">Time deposits</span></button>
+          <button class="nav-link" data-view="loans"><span class="label">Loans</span></button>
           <button class="nav-link" data-view="history"><span class="label">Transaction history</span></button>
-          <button class="nav-link" data-view="profile"><span class="label">Profile / KYC</span></button>
+          <button class="nav-link" data-view="profile"><span class="label">Profile / Settings</span></button>
         </nav>
       </aside>
 
@@ -30,10 +33,11 @@
           <button id="logout-btn" class="button button-danger">Logout</button>
         </header>
 
-        <section class="kpi-grid">
-          <article class="kpi"><p class="label">Total balance</p><p id="kpi-total-balance" class="value">$0.00</p></article>
+        <section id="balance-grid" class="kpi-grid"></section>
+        <section id="summary-grid" class="kpi-grid">
           <article class="kpi"><p class="label">Accounts</p><p id="kpi-accounts-count" class="value">0</p></article>
           <article class="kpi"><p class="label">Transfers</p><p id="kpi-transfers-count" class="value">0</p></article>
+          <article class="kpi"><p class="label">Investments</p><p id="kpi-investments-count" class="value">0</p></article>
         </section>
 
         <div id="customer-alert" class="alert"></div>
@@ -64,6 +68,7 @@
                   <thead>
                     <tr>
                       <th>Account ID</th>
+                      <th>IBAN</th>
                       <th>Currency</th>
                       <th>Balance</th>
                       <th>Created</th>
@@ -81,9 +86,11 @@
                 <div class="field">
                   <label for="currency">Currency</label>
                   <select id="currency" name="currency" required>
+                    <option value="TRY">TRY</option>
                     <option value="USD">USD</option>
                     <option value="EUR">EUR</option>
                     <option value="GBP">GBP</option>
+                    <option value="XAU">XAU (Gold)</option>
                   </select>
                 </div>
                 <button type="submit" class="button button-primary">Create account</button>
@@ -110,6 +117,97 @@
             </article>
           </div>
 
+          <div id="view-assets" class="view">
+            <article class="panel">
+              <div class="panel-header">
+                <h2>Portfolio summary</h2>
+                <span id="portfolio-updated" class="inline-muted">Loading prices...</span>
+              </div>
+              <div id="portfolio-summary" class="kpi-grid"></div>
+            </article>
+
+            <article class="panel">
+              <h2>Holdings</h2>
+              <div class="table-wrap">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Asset</th>
+                      <th>Market</th>
+                      <th>Quantity</th>
+                      <th>Avg price</th>
+                      <th>Current price</th>
+                      <th>Current value</th>
+                      <th>P/L</th>
+                    </tr>
+                  </thead>
+                  <tbody id="assets-table-body"></tbody>
+                </table>
+              </div>
+            </article>
+
+            <article class="panel">
+              <h3>Buy / Sell asset</h3>
+              <form id="investment-trade-form" class="form-row-2">
+                <div class="field">
+                  <label for="investment-side">Side</label>
+                  <select id="investment-side" name="side" required>
+                    <option value="BUY">BUY</option>
+                    <option value="SELL">SELL</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="investment-account">Account</label>
+                  <select id="investment-account" name="account_id" required></select>
+                </div>
+                <div class="field">
+                  <label for="investment-market">Market</label>
+                  <select id="investment-market" name="market" required>
+                    <option value="SP500">S&amp;P 500</option>
+                    <option value="BIST">BIST</option>
+                    <option value="METAL">Precious Metal</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="investment-symbol">Symbol / Metal code</label>
+                  <input id="investment-symbol" name="symbol" placeholder="AAPL or XAU" required />
+                </div>
+                <div class="field">
+                  <label for="investment-name">Asset name (optional)</label>
+                  <input id="investment-name" name="name" placeholder="Apple Inc." />
+                </div>
+                <div class="field">
+                  <label for="investment-quantity">Quantity</label>
+                  <input id="investment-quantity" name="quantity" type="number" min="0.0001" step="0.0001" placeholder="1.5" required />
+                </div>
+                <button type="submit" class="button button-primary">Submit trade</button>
+              </form>
+              <p class="inline-muted">Metals supported: XAU (Gold), XAG (Silver), XPT (Platinum). Use TRY accounts for BIST, USD for S&amp;P 500 and metals.</p>
+            </article>
+
+            <article class="panel">
+              <h3>Investment transactions</h3>
+              <div class="table-wrap">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Side</th>
+                      <th>Symbol</th>
+                      <th>Market</th>
+                      <th>Qty</th>
+                      <th>Price</th>
+                      <th>Total</th>
+                      <th>Account</th>
+                      <th>Created</th>
+                    </tr>
+                  </thead>
+                  <tbody id="investments-table-body"></tbody>
+                </table>
+              </div>
+            </article>
+          </div>
+
           <div id="view-transfer" class="view">
             <article class="panel">
               <h2>Transfer money</h2>
@@ -128,6 +226,104 @@
                 </div>
                 <button type="submit" class="button button-primary">Initiate transfer</button>
               </form>
+            </article>
+          </div>
+
+          <div id="view-deposits" class="view">
+            <article class="panel">
+              <h2>Open a time deposit</h2>
+              <form id="time-deposit-form" class="form-row-2">
+                <div class="field">
+                  <label for="time-deposit-account">Account</label>
+                  <select id="time-deposit-account" name="account_id" required></select>
+                </div>
+                <div class="field">
+                  <label for="time-deposit-amount">Amount</label>
+                  <input id="time-deposit-amount" name="amount" type="number" min="0.01" step="0.01" placeholder="10000" required />
+                </div>
+                <div class="field">
+                  <label for="time-deposit-rate">Annual interest rate (%)</label>
+                  <input id="time-deposit-rate" name="annual_rate" type="number" min="0.1" step="0.1" placeholder="18.0" required />
+                </div>
+                <div class="field">
+                  <label for="time-deposit-duration">Duration (months)</label>
+                  <select id="time-deposit-duration" name="duration_months" required>
+                    <option value="1">1 month</option>
+                    <option value="3">3 months</option>
+                    <option value="6">6 months</option>
+                    <option value="12">12 months</option>
+                  </select>
+                </div>
+                <button type="submit" class="button button-primary">Open deposit</button>
+              </form>
+            </article>
+
+            <article class="panel">
+              <h3>Your time deposits</h3>
+              <div class="table-wrap">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Account</th>
+                      <th>Principal</th>
+                      <th>Rate</th>
+                      <th>Duration</th>
+                      <th>Maturity</th>
+                      <th>Status</th>
+                      <th>Expected return</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="time-deposits-table-body"></tbody>
+                </table>
+              </div>
+            </article>
+          </div>
+
+          <div id="view-loans" class="view">
+            <article class="panel">
+              <h2>Request a loan</h2>
+              <form id="loan-form" class="form-row-2">
+                <div class="field">
+                  <label for="loan-account">Account</label>
+                  <select id="loan-account" name="account_id" required></select>
+                </div>
+                <div class="field">
+                  <label for="loan-amount">Amount</label>
+                  <input id="loan-amount" name="amount" type="number" min="100" step="0.01" placeholder="25000" required />
+                </div>
+                <div class="field">
+                  <label for="loan-currency">Currency</label>
+                  <input id="loan-currency" name="currency" placeholder="USD" readonly />
+                </div>
+                <div class="field">
+                  <label for="loan-purpose">Purpose</label>
+                  <input id="loan-purpose" name="purpose" placeholder="Home renovation" required />
+                </div>
+                <button type="submit" class="button button-primary">Submit request</button>
+              </form>
+            </article>
+
+            <article class="panel">
+              <h3>Your loan requests</h3>
+              <div class="table-wrap">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Account</th>
+                      <th>Amount</th>
+                      <th>Currency</th>
+                      <th>Status</th>
+                      <th>Purpose</th>
+                      <th>Repayment</th>
+                      <th>Requested</th>
+                    </tr>
+                  </thead>
+                  <tbody id="loans-table-body"></tbody>
+                </table>
+              </div>
             </article>
           </div>
 
@@ -181,6 +377,76 @@
             <article class="panel">
               <h2>Profile and KYC details</h2>
               <div id="profile-card"></div>
+            </article>
+
+            <article class="panel">
+              <h3>Update profile</h3>
+              <form id="profile-form" class="form-row-2">
+                <div class="field">
+                  <label for="profile-email">Email</label>
+                  <input id="profile-email" name="email" type="email" placeholder="example@email.com" />
+                </div>
+                <div class="field">
+                  <label for="profile-phone">Phone</label>
+                  <input id="profile-phone" name="phone" placeholder="+90 5XX XXX XX XX" />
+                </div>
+                <div class="field">
+                  <label for="profile-address">Address</label>
+                  <input id="profile-address" name="address" placeholder="Street, building number, city" />
+                </div>
+                <div class="field">
+                  <label for="profile-city">City</label>
+                  <input id="profile-city" name="city" placeholder="Istanbul" />
+                </div>
+                <div class="field">
+                  <label for="profile-country">Country</label>
+                  <input id="profile-country" name="country" placeholder="Turkey" />
+                </div>
+                <button type="submit" class="button button-primary">Save changes</button>
+              </form>
+            </article>
+
+            <article class="panel">
+              <h3>Change password</h3>
+              <form id="password-form" class="form-row-2">
+                <div class="field">
+                  <label for="current-password">Current password</label>
+                  <input id="current-password" name="current_password" type="password" placeholder="Current password" required />
+                </div>
+                <div class="field">
+                  <label for="new-password">New password</label>
+                  <input id="new-password" name="new_password" type="password" placeholder="Create a secure password" required />
+                </div>
+                <button type="submit" class="button button-primary">Update password</button>
+              </form>
+            </article>
+
+            <article class="panel">
+              <div class="panel-header">
+                <h3>Cards</h3>
+                <form id="create-card-form" class="form-row-2">
+                  <div class="field">
+                    <label for="card-account">Account</label>
+                    <select id="card-account" name="account_id" required></select>
+                  </div>
+                  <button type="submit" class="button button-ghost">Create card</button>
+                </form>
+              </div>
+              <div class="table-wrap">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Account</th>
+                      <th>Card number</th>
+                      <th>Expiry</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cards-table-body"></tbody>
+                </table>
+              </div>
             </article>
           </div>
         </section>

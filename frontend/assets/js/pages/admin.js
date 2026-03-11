@@ -17,6 +17,7 @@ const state = {
   transfers: [],
   auditLogs: [],
   lookedUpCustomers: [],
+  loans: [],
 };
 
 const els = {
@@ -31,10 +32,12 @@ const els = {
   transferBody: document.getElementById("admin-transfer-table-body"),
   accountsBody: document.getElementById("admin-accounts-table-body"),
   customerBody: document.getElementById("admin-customers-table-body"),
+  loansBody: document.getElementById("admin-loans-table-body"),
   adjustForm: document.getElementById("adjust-balance-form"),
   createCustomerForm: document.getElementById("admin-create-customer-form"),
   lookupCustomerForm: document.getElementById("admin-lookup-customer-form"),
   updateStatusForm: document.getElementById("admin-update-status-form"),
+  loanStatusForm: document.getElementById("admin-loan-status-form"),
   flushOutboxBtn: document.getElementById("flush-outbox-btn"),
   accountSelect: document.getElementById("adjust-account-id"),
   logoutBtn: document.getElementById("admin-logout-btn"),
@@ -77,14 +80,17 @@ function renderTransfers() {
   }
 
   els.transferBody.innerHTML = state.transfers
-    .map(
-      (transfer) => `
+    .map((transfer) => {
+      const currency = state.accounts.find((acc) => acc.id === transfer.from_account)?.currency || "USD";
+      const statusClass =
+        transfer.status === "COMPLETED" ? "success" : transfer.status === "FAILED" ? "danger" : "pending";
+      return `
       <tr>
         <td>#${transfer.id}</td>
         <td>${transfer.from_account}</td>
         <td>${transfer.to_account}</td>
-        <td>${formatCurrency(transfer.amount, state.accounts[0]?.currency || "USD")}</td>
-        <td><span class="pill pending">${transfer.status}</span></td>
+        <td>${formatCurrency(transfer.amount, currency)}</td>
+        <td><span class="pill ${statusClass}">${transfer.status}</span></td>
         <td>${formatDate(transfer.created_at)}</td>
         <td>
           ${
@@ -94,8 +100,8 @@ function renderTransfers() {
           }
         </td>
       </tr>
-    `
-    )
+    `;
+    })
     .join("");
 }
 
@@ -143,6 +149,32 @@ function renderCustomers() {
     .join("");
 }
 
+function renderLoans() {
+  if (!els.loansBody) return;
+  if (!state.loans.length) {
+    els.loansBody.innerHTML = `<tr><td colspan="8">No loan applications yet.</td></tr>`;
+    return;
+  }
+
+  els.loansBody.innerHTML = state.loans
+    .map((loan) => {
+      const statusClass = loan.status === "APPROVED" ? "success" : loan.status === "REJECTED" ? "danger" : "pending";
+      return `
+      <tr>
+        <td>#${loan.id}</td>
+        <td>${loan.user_id}</td>
+        <td>${loan.account_id ?? "-"}</td>
+        <td>${formatCurrency(loan.amount, loan.currency)}</td>
+        <td>${loan.currency}</td>
+        <td><span class="pill ${statusClass}">${loan.status}</span></td>
+        <td>${loan.purpose}</td>
+        <td>${formatDate(loan.updated_at)}</td>
+      </tr>
+    `;
+    })
+    .join("");
+}
+
 function populateAccountSelector() {
   els.accountSelect.innerHTML = state.accounts
     .map((account) => `<option value="${account.id}">#${account.id} (${account.currency})</option>`)
@@ -150,15 +182,17 @@ function populateAccountSelector() {
 }
 
 async function loadAdminData() {
-  const [accounts, transfers, auditLogs] = await Promise.all([
+  const [accounts, transfers, auditLogs, loans] = await Promise.all([
     apiRequest("/accounts"),
     apiRequest("/transfers"),
     apiRequest("/audit/logs"),
+    apiRequest("/loans/admin"),
   ]);
 
   state.accounts = accounts;
   state.transfers = transfers;
   state.auditLogs = auditLogs;
+  state.loans = loans;
 
   const balances = await Promise.all(
     accounts.map(async (account) => {
@@ -178,6 +212,7 @@ async function loadAdminData() {
   renderTransfers();
   renderAccounts();
   renderCustomers();
+  renderLoans();
 }
 
 function initNavigation() {
@@ -266,7 +301,6 @@ function bindActions() {
       state.lookedUpCustomers.unshift(customer);
       renderCustomers();
       showAlert(els.alert, "success", `Customer #${customer.id} created.`);
-      els.createCustomerForm.reset();
     } catch (error) {
       showAlert(els.alert, "error", toErrorMessage(error));
     }
@@ -289,22 +323,33 @@ function bindActions() {
         method: "PATCH",
         body: { status },
       });
-      state.lookedUpCustomers = state.lookedUpCustomers.map((item) => (item.id === customer.id ? customer : item));
-      if (!state.lookedUpCustomers.some((item) => item.id === customer.id)) {
-        state.lookedUpCustomers.unshift(customer);
-      }
+      state.lookedUpCustomers = state.lookedUpCustomers.map((row) => (row.id === customer.id ? customer : row));
       renderCustomers();
-      showAlert(els.alert, "success", `Customer #${customer.id} status updated.`);
+      showAlert(els.alert, "success", `Customer #${customerId} updated.`);
     } catch (error) {
       showAlert(els.alert, "error", toErrorMessage(error));
     }
   });
 
-  els.flushOutboxBtn?.addEventListener("click", async () => {
+  els.loanStatusForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
     clearAlert(els.alert);
+
+    const loanId = Number(els.loanStatusForm.loan_id.value);
+    const status = els.loanStatusForm.status.value;
+
+    if (!loanId || !status) {
+      showAlert(els.alert, "error", "Loan status form is incomplete.");
+      return;
+    }
+
     try {
-      const flushed = await apiRequest("/audit/outbox/flush", { method: "POST" });
-      showAlert(els.alert, "success", `Outbox flush complete. Processed: ${flushed.length}`);
+      await apiRequest(`/loans/${loanId}/status`, {
+        method: "POST",
+        body: { status },
+      });
+      showAlert(els.alert, "success", `Loan #${loanId} updated to ${status}.`);
+      await loadAdminData();
     } catch (error) {
       showAlert(els.alert, "error", toErrorMessage(error));
     }
@@ -328,6 +373,16 @@ function bindActions() {
       showAlert(els.alert, "error", toErrorMessage(error));
     } finally {
       target.removeAttribute("disabled");
+    }
+  });
+
+  els.flushOutboxBtn?.addEventListener("click", async () => {
+    clearAlert(els.alert);
+    try {
+      const result = await apiRequest("/events/flush", { method: "POST" });
+      showAlert(els.alert, "success", `Outbox flushed. ${result.processed} processed.`);
+    } catch (error) {
+      showAlert(els.alert, "error", toErrorMessage(error));
     }
   });
 }

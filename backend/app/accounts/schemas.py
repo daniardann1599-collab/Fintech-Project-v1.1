@@ -21,6 +21,7 @@ class AccountResponse(BaseModel):
     id: int
     customer_id: int
     currency: str
+    iban: str
     created_at: datetime
 
     class Config:
