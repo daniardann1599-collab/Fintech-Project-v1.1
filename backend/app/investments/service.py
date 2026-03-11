@@ -34,10 +34,9 @@ def _resolve_asset(db: Session, payload: InvestmentTradeRequest) -> InvestmentAs
     if asset:
         return asset
 
-    asset_type = AssetType.METAL if payload.market == AssetMarket.METAL else AssetType.STOCK
+    asset_type = AssetType.STOCK
     name = payload.name or symbol
     exchange = determine_exchange(payload.market)
-    metal_code = symbol if asset_type == AssetType.METAL else None
 
     asset = InvestmentAsset(
         symbol=symbol,
@@ -46,7 +45,6 @@ def _resolve_asset(db: Session, payload: InvestmentTradeRequest) -> InvestmentAs
         market=payload.market,
         currency="USD" if payload.market != AssetMarket.BIST else "TRY",
         exchange=exchange,
-        metal_code=metal_code,
     )
     db.add(asset)
     db.flush()

@@ -13,7 +13,6 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     websocket_poll_seconds: int = 2
     twelvedata_api_key: str = "change-me"
-    metals_api_key: str = "change-me"
     market_price_cache_seconds: int = 60
     market_table_cache_seconds: int = 5
 
