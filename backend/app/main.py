@@ -24,6 +24,7 @@ from app.time_deposits.router import router as time_deposits_router
 from app.loans.router import router as loans_router
 from app.profile.router import router as profile_router
 from app.cards.router import router as cards_router
+from app.market.router import router as market_router
 
 configure_logging(settings.log_level)
 
@@ -92,3 +93,4 @@ app.include_router(time_deposits_router)
 app.include_router(loans_router)
 app.include_router(profile_router)
 app.include_router(cards_router)
+app.include_router(market_router)

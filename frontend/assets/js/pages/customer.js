@@ -530,12 +530,17 @@ async function refreshDashboard() {
 }
 
 function initNavigation() {
-  els.nav?.querySelectorAll("[data-view]").forEach((link) => {
-    link.addEventListener("click", () => {
-      const key = link.dataset.view;
-      activateNav("#customer-nav", key);
-      switchView("#customer-views", `view-${key}`);
-    });
+  if (!els.nav) return;
+  els.nav.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    const link = target.closest("[data-view]");
+    if (!link) return;
+    event.preventDefault();
+    const key = link.dataset.view;
+    if (!key) return;
+    activateNav("#customer-nav", key);
+    switchView("#customer-views", `view-${key}`);
   });
 }
 

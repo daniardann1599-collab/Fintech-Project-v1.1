@@ -27,6 +27,7 @@ services:
       TWELVEDATA_API_KEY: "${TWELVEDATA_API_KEY:-change-me}"
       METALS_API_KEY: "${METALS_API_KEY:-change-me}"
       MARKET_PRICE_CACHE_SECONDS: "${MARKET_PRICE_CACHE_SECONDS:-60}"
+      MARKET_TABLE_CACHE_SECONDS: "${MARKET_TABLE_CACHE_SECONDS:-5}"
     ports:
       - "8000:8000"
     depends_on:
