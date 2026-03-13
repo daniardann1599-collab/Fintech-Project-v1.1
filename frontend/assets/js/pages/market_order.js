@@ -43,7 +43,7 @@ async function loadAccounts() {
 function updateHint(market) {
   if (!els.hint) return;
   if (market === "BIST100") {
-    els.hint.textContent = "Use TRY accounts for BIST100 orders.";
+    els.hint.textContent = "BIST100 orders are unavailable with Alpaca.";
   } else if (market === "SP500") {
     els.hint.textContent = "Use USD accounts for S&P 500 orders.";
   } else {

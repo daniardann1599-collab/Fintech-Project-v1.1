@@ -37,10 +37,10 @@ function sortRows(rows) {
   return [...rows].sort((a, b) => (a.price - b.price) * factor);
 }
 
-function renderRows(rows, tbody, market) {
+function renderRows(rows, tbody, market, emptyMessage = "No stocks found.") {
   if (!tbody) return;
   if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="5">No stocks found.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5">${emptyMessage}</td></tr>`;
     return;
   }
 
@@ -68,7 +68,7 @@ function renderTables() {
   const bist100 = sortRows(applyFilters(state.bist100));
 
   renderRows(sp500, els.sp500Body, "SP500");
-  renderRows(bist100, els.bist100Body, "BIST100");
+  renderRows(bist100, els.bist100Body, "BIST100", "Unavailable (Alpaca only)");
 
   const showSp500 = state.filter === "ALL" || state.filter === "SP500";
   const showBist = state.filter === "ALL" || state.filter === "BIST100";
@@ -99,18 +99,29 @@ async function loadMarketData() {
   if (els.bist100Body) els.bist100Body.innerHTML = `<tr><td colspan="5">Loading...</td></tr>`;
 
   try {
-    const [sp500, bist100] = await Promise.all([
-      apiRequest("/api/market/sp500"),
-      apiRequest("/api/market/bist100"),
-    ]);
+    const sp500 = await apiRequest("/api/market/sp500");
     state.sp500 = Array.isArray(sp500) ? sp500 : [];
-    state.bist100 = Array.isArray(bist100) ? bist100 : [];
-    state.lastUpdated = Date.now();
-    renderTables();
-    updateStatus();
   } catch (error) {
-    showAlert(els.alert, "error", toErrorMessage(error, "Unable to load market data"));
+    showAlert(els.alert, "error", toErrorMessage(error, "Unable to load S&P 500 data"));
+    state.sp500 = [];
   }
+
+  try {
+    const bist100 = await apiRequest("/api/market/bist100");
+    state.bist100 = Array.isArray(bist100) ? bist100 : [];
+    if (els.bist100Status) {
+      els.bist100Status.textContent = "Live data available";
+    }
+  } catch (error) {
+    state.bist100 = [];
+    if (els.bist100Status) {
+      els.bist100Status.textContent = "Unavailable (Alpaca only)";
+    }
+  }
+
+  state.lastUpdated = Date.now();
+  renderTables();
+  updateStatus();
 }
 
 function bindControls() {
@@ -156,12 +167,17 @@ async function init() {
 
   setInterval(async () => {
     try {
-      const [sp500, bist100] = await Promise.all([
-        apiRequest("/api/market/sp500"),
-        apiRequest("/api/market/bist100"),
-      ]);
+      const sp500 = await apiRequest("/api/market/sp500");
       state.sp500 = Array.isArray(sp500) ? sp500 : [];
-      state.bist100 = Array.isArray(bist100) ? bist100 : [];
+      try {
+        const bist100 = await apiRequest("/api/market/bist100");
+        state.bist100 = Array.isArray(bist100) ? bist100 : [];
+      } catch {
+        state.bist100 = [];
+        if (els.bist100Status) {
+          els.bist100Status.textContent = "Unavailable (Alpaca only)";
+        }
+      }
       state.lastUpdated = Date.now();
       renderTables();
       updateStatus();

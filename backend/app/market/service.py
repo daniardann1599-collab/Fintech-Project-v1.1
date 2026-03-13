@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import time
 from decimal import Decimal
-from typing import Any
-
 import httpx
 
 from app.core.config import settings
@@ -35,36 +33,38 @@ def _set_cached_price(market: str, symbol: str, price: Decimal, currency: str) -
     _price_cache[key] = (time.time(), price, currency)
 
 
+def _alpaca_headers() -> dict[str, str]:
+    if not settings.alpaca_api_key or not settings.alpaca_api_secret:
+        raise ValueError("Alpaca API credentials are not configured")
+    return {
+        "APCA-API-KEY-ID": settings.alpaca_api_key,
+        "APCA-API-SECRET-KEY": settings.alpaca_api_secret,
+    }
+
+
 def fetch_stock_price(symbol: str, exchange: str | None = None) -> tuple[Decimal, str]:
-    cache_market = f"STOCK:{exchange or 'GLOBAL'}"
+    if exchange:
+        raise ValueError("Alpaca does not support this exchange")
+
+    cache_market = "STOCK:ALPACA"
     cached = _get_cached_price(cache_market, symbol)
     if cached:
         return cached
 
-    if not settings.twelvedata_api_key:
-        raise ValueError("Twelve Data API key is not configured")
-
-    params: dict[str, Any] = {
-        "symbol": symbol.upper(),
-        "interval": "1min",
-        "outputsize": 1,
-        "apikey": settings.twelvedata_api_key,
-    }
-    if exchange:
-        params["exchange"] = exchange
-
-    url = "https://api.twelvedata.com/time_series"
+    url = f"https://data.alpaca.markets/v2/stocks/{symbol.upper()}/snapshot"
     with httpx.Client(timeout=10) as client:
-        response = client.get(url, params=params)
+        response = client.get(url, headers=_alpaca_headers())
         response.raise_for_status()
         payload = response.json()
 
-    values = payload.get("values") or []
-    if not values:
+    latest_trade = payload.get("latestTrade") or {}
+    daily_bar = payload.get("dailyBar") or {}
+    price_value = latest_trade.get("p") or daily_bar.get("c")
+    if price_value is None:
         raise ValueError("Market price not available")
 
-    price = Decimal(values[0]["close"])
-    currency = payload.get("meta", {}).get("currency", "USD")
+    price = Decimal(str(price_value))
+    currency = "USD"
 
     _set_cached_price(cache_market, symbol, price, currency)
     logger.info(

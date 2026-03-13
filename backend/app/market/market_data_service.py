@@ -22,18 +22,6 @@ SP500_SYMBOLS: list[dict[str, str]] = [
     {"symbol": "V", "name": "Visa"},
 ]
 
-BIST100_SYMBOLS: list[dict[str, str]] = [
-    {"symbol": "THYAO", "name": "Turkish Airlines"},
-    {"symbol": "GARAN", "name": "Garanti BBVA"},
-    {"symbol": "AKBNK", "name": "Akbank"},
-    {"symbol": "KCHOL", "name": "Koc Holding"},
-    {"symbol": "EREGL", "name": "Eregli Demir Celik"},
-    {"symbol": "ASELS", "name": "Aselsan"},
-    {"symbol": "BIMAS", "name": "BIM"},
-    {"symbol": "TUPRS", "name": "Tupras"},
-    {"symbol": "SISE", "name": "Sise"},
-]
-
 _snapshot_cache: dict[str, tuple[float, dict]] = {}
 
 
@@ -57,38 +45,36 @@ def _set_cached_snapshot(market: str, symbol: str, payload: dict) -> None:
     _snapshot_cache[key] = (time.time(), payload)
 
 
-def _fetch_snapshot(symbol: str, name: str, exchange: str | None, market: str) -> dict:
+def _alpaca_headers() -> dict[str, str]:
+    if not settings.alpaca_api_key or not settings.alpaca_api_secret:
+        raise ValueError("Alpaca API credentials are not configured")
+    return {
+        "APCA-API-KEY-ID": settings.alpaca_api_key,
+        "APCA-API-SECRET-KEY": settings.alpaca_api_secret,
+    }
+
+
+def _fetch_snapshot(symbol: str, name: str, market: str) -> dict:
     cached = _get_cached_snapshot(market, symbol)
     if cached:
         return cached
 
-    if not settings.twelvedata_api_key:
-        raise ValueError("Twelve Data API key is not configured")
-
-    params = {
-        "symbol": symbol.upper(),
-        "interval": "1min",
-        "outputsize": 2,
-        "apikey": settings.twelvedata_api_key,
-    }
-    if exchange:
-        params["exchange"] = exchange
-
-    url = "https://api.twelvedata.com/time_series"
+    url = f"https://data.alpaca.markets/v2/stocks/{symbol.upper()}/snapshot"
     with httpx.Client(timeout=10) as client:
-        response = client.get(url, params=params)
+        response = client.get(url, headers=_alpaca_headers())
         response.raise_for_status()
         payload = response.json()
 
-    values = payload.get("values") or []
-    if not values:
+    latest_trade = payload.get("latestTrade") or {}
+    daily_bar = payload.get("dailyBar") or {}
+    prev_daily_bar = payload.get("prevDailyBar") or {}
+    price_value = latest_trade.get("p") or daily_bar.get("c")
+    if price_value is None:
         raise ValueError(f"Market price not available for {symbol}")
 
-    price = Decimal(values[0]["close"])
-    previous = Decimal(values[1]["close"]) if len(values) > 1 else Decimal("0")
-    change_percent = (
-        (price - previous) / previous * Decimal("100") if previous else Decimal("0")
-    )
+    price = Decimal(str(price_value))
+    previous = Decimal(str(prev_daily_bar.get("c"))) if prev_daily_bar.get("c") else Decimal("0")
+    change_percent = (price - previous) / previous * Decimal("100") if previous else Decimal("0")
 
     snapshot = {
         "symbol": symbol.upper(),
@@ -115,12 +101,5 @@ def _fetch_snapshot(symbol: str, name: str, exchange: str | None, market: str) -
 def get_sp500_snapshots() -> list[dict]:
     snapshots: list[dict] = []
     for item in SP500_SYMBOLS:
-        snapshots.append(_fetch_snapshot(item["symbol"], item["name"], None, "SP500"))
-    return snapshots
-
-
-def get_bist100_snapshots() -> list[dict]:
-    snapshots: list[dict] = []
-    for item in BIST100_SYMBOLS:
-        snapshots.append(_fetch_snapshot(item["symbol"], item["name"], "XIST", "BIST100"))
+        snapshots.append(_fetch_snapshot(item["symbol"], item["name"], "SP500"))
     return snapshots
