@@ -33,7 +33,7 @@ def sp500_market_data(current_user: User = Depends(get_current_user)) -> list[di
         )
         raise HTTPException(
             status_code=502,
-            detail=f"Alpaca market data error (HTTP {exc.response.status_code})",
+            detail=f"Finnhub market data error (HTTP {exc.response.status_code})",
         ) from exc
     except Exception as exc:
         logger.exception(

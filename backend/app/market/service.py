@@ -41,7 +41,7 @@ def _finnhub_params(symbol: str) -> dict[str, str]:
 
 def fetch_stock_price(symbol: str, exchange: str | None = None) -> tuple[Decimal, str]:
     if exchange:
-        raise ValueError("Alpaca does not support this exchange")
+        raise ValueError("Finnhub does not support this exchange")
 
     cache_market = "STOCK:FINNHUB"
     cached = _get_cached_price(cache_market, symbol)
