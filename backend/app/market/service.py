@@ -33,34 +33,32 @@ def _set_cached_price(market: str, symbol: str, price: Decimal, currency: str) -
     _price_cache[key] = (time.time(), price, currency)
 
 
-def _alpaca_headers() -> dict[str, str]:
-    if not settings.alpaca_api_key or not settings.alpaca_api_secret:
-        raise ValueError("Alpaca API credentials are not configured")
-    return {
-        "APCA-API-KEY-ID": settings.alpaca_api_key,
-        "APCA-API-SECRET-KEY": settings.alpaca_api_secret,
-    }
+def _finnhub_params(symbol: str) -> dict[str, str]:
+    if not settings.finnhub_api_key:
+        raise ValueError("Finnhub API key is not configured")
+    return {"symbol": symbol.upper(), "token": settings.finnhub_api_key}
 
 
 def fetch_stock_price(symbol: str, exchange: str | None = None) -> tuple[Decimal, str]:
     if exchange:
         raise ValueError("Alpaca does not support this exchange")
 
-    cache_market = "STOCK:ALPACA"
+    cache_market = "STOCK:FINNHUB"
     cached = _get_cached_price(cache_market, symbol)
     if cached:
         return cached
 
-    url = f"https://data.alpaca.markets/v2/stocks/{symbol.upper()}/snapshot"
+    url = "https://finnhub.io/api/v1/quote"
     with httpx.Client(timeout=10) as client:
-        response = client.get(url, headers=_alpaca_headers())
+        response = client.get(url, params=_finnhub_params(symbol))
         response.raise_for_status()
         payload = response.json()
 
-    latest_trade = payload.get("latestTrade") or {}
-    daily_bar = payload.get("dailyBar") or {}
-    price_value = latest_trade.get("p") or daily_bar.get("c")
-    if price_value is None:
+    if payload.get("error"):
+        raise ValueError(f"Finnhub error: {payload['error']}")
+
+    price_value = payload.get("c")
+    if price_value in (None, 0):
         raise ValueError("Market price not available")
 
     price = Decimal(str(price_value))

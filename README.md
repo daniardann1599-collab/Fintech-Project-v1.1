@@ -155,7 +155,7 @@ See `.env.example` for all configurable values.
 Important:
 - Use strong `JWT_SECRET` in real environments.
 - Do not commit `.env` to GitHub.
- - Set `ALPACA_API_KEY` and `ALPACA_API_SECRET` for live market data.
+ - Set `FINNHUB_API_KEY` for live market data.
 
 ## CI/CD
 

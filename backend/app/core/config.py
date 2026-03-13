@@ -12,8 +12,7 @@ class Settings(BaseSettings):
     rate_limit_window_seconds: int = 60
     log_level: str = "INFO"
     websocket_poll_seconds: int = 2
-    alpaca_api_key: str = "change-me"
-    alpaca_api_secret: str = "change-me"
+    finnhub_api_key: str = "change-me"
     market_price_cache_seconds: int = 60
     market_table_cache_seconds: int = 5
 
