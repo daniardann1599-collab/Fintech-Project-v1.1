@@ -6,7 +6,6 @@ from app.accounts.router import router as accounts_router
 from app.audit.router import router as audit_router
 from app.auth.router import router as auth_router
 from app.core.config import settings
-from app.core.database import Base, engine
 from app.core.exceptions import (
     http_exception_handler,
     unhandled_exception_handler,
