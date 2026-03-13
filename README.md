@@ -64,6 +64,11 @@ Run migrations from the repo root:
 alembic -c backend/alembic.ini upgrade head
 ```
 
+Run migrations inside Docker:
+```bash
+docker compose -f infra/docker-compose.yml run --rm backend python -m alembic -c /app/alembic.ini upgrade head
+```
+
 Supabase note:
 - If you use Supabase, set `DATABASE_URL` in `.env` to the Supabase connection string and add `?sslmode=require`.
 
