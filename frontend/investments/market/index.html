@@ -38,14 +38,6 @@
               <input id="market-search" name="market-search" placeholder="Search: AAPL" />
             </div>
             <div class="field">
-              <label for="market-filter">Market filter</label>
-              <select id="market-filter" name="market-filter">
-                <option value="ALL">All</option>
-                <option value="SP500">S&amp;P 500</option>
-                <option value="BIST100">BIST100</option>
-              </select>
-            </div>
-            <div class="field">
               <label for="market-sort">Sort by price</label>
               <button id="market-sort" class="button button-ghost" type="button">Price: High to Low</button>
             </div>
@@ -73,26 +65,7 @@
           </div>
         </section>
 
-        <section id="section-bist100" class="panel">
-          <div class="market-meta">
-            <h2>BIST100</h2>
-            <span id="bist100-status" class="inline-muted">Loading...</span>
-          </div>
-          <div class="table-wrap">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Stock Symbol</th>
-                  <th>Company Name</th>
-                  <th>Current Price</th>
-                  <th>Price Change %</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="bist100-table-body"></tbody>
-            </table>
-          </div>
-        </section>
+        
       </main>
     </div>
 

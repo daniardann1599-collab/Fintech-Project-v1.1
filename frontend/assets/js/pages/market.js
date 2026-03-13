@@ -4,9 +4,7 @@ import { clearAlert, formatCurrency, formatPercent, showAlert, toErrorMessage } 
 
 const state = {
   sp500: [],
-  bist100: [],
   search: "",
-  filter: "ALL",
   sortDirection: "desc",
   lastUpdated: null,
 };
@@ -15,14 +13,10 @@ const els = {
   alert: document.getElementById("market-alert"),
   sub: document.getElementById("market-sub"),
   search: document.getElementById("market-search"),
-  filter: document.getElementById("market-filter"),
   sort: document.getElementById("market-sort"),
   sp500Body: document.getElementById("sp500-table-body"),
-  bist100Body: document.getElementById("bist100-table-body"),
   sp500Status: document.getElementById("sp500-status"),
-  bist100Status: document.getElementById("bist100-status"),
   sectionSp500: document.getElementById("section-sp500"),
-  sectionBist: document.getElementById("section-bist100"),
   logout: document.getElementById("logout-btn"),
 };
 
@@ -47,7 +41,7 @@ function renderRows(rows, tbody, market, emptyMessage = "No stocks found.") {
   tbody.innerHTML = rows
     .map((row) => {
       const changeClass = row.change_percent > 0 ? "pnl-positive" : row.change_percent < 0 ? "pnl-negative" : "";
-      const currency = market === "BIST100" ? "TRY" : "USD";
+      const currency = "USD";
       return `
         <tr>
           <td>${row.symbol}</td>
@@ -65,15 +59,7 @@ function renderRows(rows, tbody, market, emptyMessage = "No stocks found.") {
 
 function renderTables() {
   const sp500 = sortRows(applyFilters(state.sp500));
-  const bist100 = sortRows(applyFilters(state.bist100));
-
   renderRows(sp500, els.sp500Body, "SP500");
-  renderRows(bist100, els.bist100Body, "BIST100", "Unavailable (Alpaca only)");
-
-  const showSp500 = state.filter === "ALL" || state.filter === "SP500";
-  const showBist = state.filter === "ALL" || state.filter === "BIST100";
-  if (els.sectionSp500) els.sectionSp500.style.display = showSp500 ? "block" : "none";
-  if (els.sectionBist) els.sectionBist.style.display = showBist ? "block" : "none";
 
   if (els.sort) {
     els.sort.textContent = `Price: ${state.sortDirection === "asc" ? "Low to High" : "High to Low"}`;
@@ -88,15 +74,11 @@ function updateStatus() {
   if (els.sp500Status) {
     els.sp500Status.textContent = `Last update: ${timestamp}`;
   }
-  if (els.bist100Status) {
-    els.bist100Status.textContent = `Last update: ${timestamp}`;
-  }
 }
 
 async function loadMarketData() {
   clearAlert(els.alert);
   if (els.sp500Body) els.sp500Body.innerHTML = `<tr><td colspan="5">Loading...</td></tr>`;
-  if (els.bist100Body) els.bist100Body.innerHTML = `<tr><td colspan="5">Loading...</td></tr>`;
 
   try {
     const sp500 = await apiRequest("/api/market/sp500");
@@ -104,19 +86,6 @@ async function loadMarketData() {
   } catch (error) {
     showAlert(els.alert, "error", toErrorMessage(error, "Unable to load S&P 500 data"));
     state.sp500 = [];
-  }
-
-  try {
-    const bist100 = await apiRequest("/api/market/bist100");
-    state.bist100 = Array.isArray(bist100) ? bist100 : [];
-    if (els.bist100Status) {
-      els.bist100Status.textContent = "Live data available";
-    }
-  } catch (error) {
-    state.bist100 = [];
-    if (els.bist100Status) {
-      els.bist100Status.textContent = "Unavailable (Alpaca only)";
-    }
   }
 
   state.lastUpdated = Date.now();
@@ -130,29 +99,22 @@ function bindControls() {
     renderTables();
   });
 
-  els.filter?.addEventListener("change", (event) => {
-    state.filter = event.target.value || "ALL";
-    renderTables();
-  });
-
   els.sort?.addEventListener("click", () => {
     state.sortDirection = state.sortDirection === "asc" ? "desc" : "asc";
     renderTables();
   });
 
-  [els.sp500Body, els.bist100Body].forEach((tbody) => {
-    tbody?.addEventListener("click", (event) => {
-      const target = event.target;
-      if (!(target instanceof HTMLElement)) return;
-      const button = target.closest(".select-stock");
-      if (!button) return;
-      const symbol = button.dataset.symbol;
-      const market = button.dataset.market;
-      if (!symbol || !market) return;
-      window.localStorage.setItem("selected_market_symbol", symbol);
-      window.localStorage.setItem("selected_market", market);
-      window.location.href = `/investments/order/index.html?symbol=${encodeURIComponent(symbol)}&market=${encodeURIComponent(market)}`;
-    });
+  els.sp500Body?.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    const button = target.closest(".select-stock");
+    if (!button) return;
+    const symbol = button.dataset.symbol;
+    const market = button.dataset.market;
+    if (!symbol || !market) return;
+    window.localStorage.setItem("selected_market_symbol", symbol);
+    window.localStorage.setItem("selected_market", market);
+    window.location.href = `/investments/order/index.html?symbol=${encodeURIComponent(symbol)}&market=${encodeURIComponent(market)}`;
   });
 
   els.logout?.addEventListener("click", logout);
@@ -169,15 +131,6 @@ async function init() {
     try {
       const sp500 = await apiRequest("/api/market/sp500");
       state.sp500 = Array.isArray(sp500) ? sp500 : [];
-      try {
-        const bist100 = await apiRequest("/api/market/bist100");
-        state.bist100 = Array.isArray(bist100) ? bist100 : [];
-      } catch {
-        state.bist100 = [];
-        if (els.bist100Status) {
-          els.bist100Status.textContent = "Unavailable (Alpaca only)";
-        }
-      }
       state.lastUpdated = Date.now();
       renderTables();
       updateStatus();
