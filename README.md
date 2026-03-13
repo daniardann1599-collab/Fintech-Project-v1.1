@@ -55,6 +55,15 @@ Services:
 - OpenAPI JSON: [http://localhost:8000/openapi.json](http://localhost:8000/openapi.json)
 - Frontend demo: [http://localhost:8080](http://localhost:8080)
 
+## Migrations (Alembic)
+
+Alembic is configured in `backend/alembic.ini`.
+
+Run migrations from the repo root:
+```bash
+alembic -c backend/alembic.ini upgrade head
+```
+
 Supabase note:
 - If you use Supabase, set `DATABASE_URL` in `.env` to the Supabase connection string and add `?sslmode=require`.
 
