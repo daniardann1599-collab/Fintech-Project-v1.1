@@ -102,6 +102,8 @@ Protected:
 WebSocket:
 - `GET ws://localhost:8000/ws/events?token=<jwt>`
   - Streams outbox snapshot updates (pending count + latest events)
+- `GET ws://localhost:8000/ws/banks/{bank_code}?token=<jwt>`
+  - Streams ISO 20022 PACS.008 XML for executed transfers routed by bank code
 
 ## Swagger Usage
 

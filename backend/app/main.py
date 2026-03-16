@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,6 +18,8 @@ from app.core.middleware import RateLimitMiddleware, RequestLoggingMiddleware, S
 from app.customers.router import router as customers_router
 from app.events.router import router as events_router
 from app.ledger.router import router as ledger_router
+from app.pacs.manager import bank_ws_manager
+from app.pacs.router import router as pacs_router
 from app.models import entities  # noqa: F401
 from app.transfers.router import router as transfers_router
 from app.investments.router import router as investments_router
@@ -52,7 +56,9 @@ app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, unhandled_exception_handler)
 
 
-# Schema is managed via Alembic migrations.
+@app.on_event("startup")
+async def on_startup() -> None:
+    bank_ws_manager.set_loop(asyncio.get_running_loop())
 
 
 @app.get("/health")
@@ -85,6 +91,7 @@ app.include_router(ledger_router)
 app.include_router(transfers_router)
 app.include_router(audit_router)
 app.include_router(events_router)
+app.include_router(pacs_router)
 app.include_router(investments_router)
 app.include_router(time_deposits_router)
 app.include_router(loans_router)
