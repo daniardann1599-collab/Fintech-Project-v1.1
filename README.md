@@ -54,7 +54,7 @@ Services:
 - Swagger UI: [http://localhost:8000/docs](http://localhost:8000/docs)
 - OpenAPI JSON: [http://localhost:8000/openapi.json](http://localhost:8000/openapi.json)
 - Frontend demo: [http://localhost:8080](http://localhost:8080)
-
+- Public website https://northstarbank.daniar-dann1599.workers.dev/
 ## Migrations (Alembic)
 
 Alembic is configured in `backend/alembic.ini`.
