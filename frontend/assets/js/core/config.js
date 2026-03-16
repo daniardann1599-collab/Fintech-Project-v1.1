@@ -1,4 +1,5 @@
-export const API_BASE_URL = window.localStorage.getItem("bank_api_base") || "http://localhost:8000";
+export const API_BASE_URL =
+  window.localStorage.getItem("bank_api_base") || "https://fintech-project-v11-production.up.railway.app";
 
 export const APP_ROUTES = {
   landing: "/index.html",
