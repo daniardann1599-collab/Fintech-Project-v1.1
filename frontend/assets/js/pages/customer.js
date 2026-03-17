@@ -44,6 +44,7 @@ const els = {
   accountSelectTransferFrom: document.getElementById("transfer-from-account"),
   accountSelectTransferTo: document.getElementById("transfer-to-account"),
   accountSelectDeposit: document.getElementById("deposit-account"),
+  accountSelectWithdraw: document.getElementById("withdraw-account"),
   accountSelectLedger: document.getElementById("ledger-account"),
   timeDepositAccountSelect: document.getElementById("time-deposit-account"),
   loanAccountSelect: document.getElementById("loan-account"),
@@ -52,6 +53,7 @@ const els = {
   createAccountForm: document.getElementById("create-account-form"),
   transferForm: document.getElementById("transfer-form"),
   depositForm: document.getElementById("deposit-form"),
+  withdrawForm: document.getElementById("withdraw-form"),
   timeDepositForm: document.getElementById("time-deposit-form"),
   loanForm: document.getElementById("loan-form"),
   kycForm: document.getElementById("kyc-form"),
@@ -88,13 +90,16 @@ function renderBalanceGrid() {
 
 function renderAccounts() {
   if (!state.accounts.length) {
-    els.accountsTableBody.innerHTML = `<tr><td colspan="6">No accounts yet. Create your first account.</td></tr>`;
+    els.accountsTableBody.innerHTML = `<tr><td colspan="7">No accounts yet. Create your first account.</td></tr>`;
     return;
   }
 
   els.accountsTableBody.innerHTML = state.accounts
     .map((account) => {
       const balance = state.balances[account.id] ?? 0;
+      const canDelete = balance === 0;
+      const deleteDisabled = canDelete ? "" : "disabled";
+      const deleteTitle = canDelete ? "" : 'title="Balance must be 0 to delete"';
       return `
         <tr>
           <td>#${account.id}</td>
@@ -103,6 +108,11 @@ function renderAccounts() {
           <td>${formatCurrency(balance, account.currency)}</td>
           <td>${formatDate(account.created_at)}</td>
           <td><span class="pill success">ACTIVE</span></td>
+          <td>
+            <button class="button button-ghost delete-account-btn" data-account-id="${account.id}" ${deleteDisabled} ${deleteTitle}>
+              Delete
+            </button>
+          </td>
         </tr>
       `;
     })
@@ -289,6 +299,9 @@ function renderCards() {
           <button class="button button-ghost toggle-card-btn" data-card-id="${card.id}" data-next-status="${nextStatus}">
             Set ${nextStatus}
           </button>
+          <button class="button button-ghost delete-card-btn" data-card-id="${card.id}">
+            Delete
+          </button>
         </td>
       </tr>
     `;
@@ -313,6 +326,7 @@ function populateAccountSelects() {
     els.accountSelectTransferFrom,
     els.accountSelectTransferTo,
     els.accountSelectDeposit,
+    els.accountSelectWithdraw,
     els.accountSelectLedger,
     els.timeDepositAccountSelect,
     els.loanAccountSelect,
@@ -497,6 +511,34 @@ function bindForms() {
     }
   });
 
+  els.withdrawForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    clearAlert(els.alert);
+
+    const accountId = Number(els.withdrawForm.account_id.value);
+    const amount = Number(els.withdrawForm.amount.value);
+    const reference = els.withdrawForm.reference_id.value.trim();
+
+    if (!accountId || !amount || !reference) {
+      showAlert(els.alert, "error", "Withdraw form is incomplete.");
+      return;
+    }
+
+    try {
+      await apiRequest(`/accounts/${accountId}/withdraw`, {
+        method: "POST",
+        body: { amount, reference_id: reference },
+      });
+      showAlert(els.alert, "success", "Withdrawal posted to ledger.");
+      await refreshDashboard();
+      els.accountSelectLedger.value = String(accountId);
+      await loadLedger(accountId);
+      renderLedgerEntries();
+    } catch (error) {
+      showAlert(els.alert, "error", toErrorMessage(error));
+    }
+  });
+
   els.transferForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
     clearAlert(els.alert);
@@ -543,6 +585,32 @@ function bindForms() {
     try {
       await apiRequest(`/transfers/${transferId}/execute`, { method: "POST" });
       showAlert(els.alert, "success", `Transfer #${transferId} executed.`);
+      await refreshDashboard();
+    } catch (error) {
+      showAlert(els.alert, "error", toErrorMessage(error));
+    } finally {
+      target.removeAttribute("disabled");
+    }
+  });
+
+  els.accountsTableBody?.addEventListener("click", async (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (!target.classList.contains("delete-account-btn")) return;
+
+    const accountId = Number(target.dataset.accountId);
+    if (!accountId) return;
+
+    const confirmDelete = window.confirm(
+      `Delete account #${accountId}? This is only allowed if the account has no ledger history or linked items.`
+    );
+    if (!confirmDelete) return;
+
+    clearAlert(els.alert);
+    target.setAttribute("disabled", "true");
+    try {
+      await apiRequest(`/accounts/${accountId}`, { method: "DELETE" });
+      showAlert(els.alert, "success", `Account #${accountId} deleted.`);
       await refreshDashboard();
     } catch (error) {
       showAlert(els.alert, "error", toErrorMessage(error));
@@ -721,22 +789,41 @@ function bindForms() {
   els.cardsTableBody?.addEventListener("click", async (event) => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
-    if (!target.classList.contains("toggle-card-btn")) return;
-
     const cardId = Number(target.dataset.cardId);
-    const nextStatus = target.dataset.nextStatus;
-    if (!cardId || !nextStatus) return;
 
-    clearAlert(els.alert);
-    target.setAttribute("disabled", "true");
-    try {
-      await apiRequest(`/cards/${cardId}/status`, { method: "POST", body: { status: nextStatus } });
-      showAlert(els.alert, "success", `Card #${cardId} set to ${nextStatus}.`);
-      await refreshDashboard();
-    } catch (error) {
-      showAlert(els.alert, "error", toErrorMessage(error));
-    } finally {
-      target.removeAttribute("disabled");
+    if (target.classList.contains("toggle-card-btn")) {
+      const nextStatus = target.dataset.nextStatus;
+      if (!cardId || !nextStatus) return;
+
+      clearAlert(els.alert);
+      target.setAttribute("disabled", "true");
+      try {
+        await apiRequest(`/cards/${cardId}/status`, { method: "POST", body: { status: nextStatus } });
+        showAlert(els.alert, "success", `Card #${cardId} set to ${nextStatus}.`);
+        await refreshDashboard();
+      } catch (error) {
+        showAlert(els.alert, "error", toErrorMessage(error));
+      } finally {
+        target.removeAttribute("disabled");
+      }
+    }
+
+    if (target.classList.contains("delete-card-btn")) {
+      if (!cardId) return;
+      const confirmDelete = window.confirm(`Delete card #${cardId}? This cannot be undone.`);
+      if (!confirmDelete) return;
+
+      clearAlert(els.alert);
+      target.setAttribute("disabled", "true");
+      try {
+        await apiRequest(`/cards/${cardId}`, { method: "DELETE" });
+        showAlert(els.alert, "success", `Card #${cardId} deleted.`);
+        await refreshDashboard();
+      } catch (error) {
+        showAlert(els.alert, "error", toErrorMessage(error));
+      } finally {
+        target.removeAttribute("disabled");
+      }
     }
   });
 

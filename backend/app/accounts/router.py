@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.accounts.schemas import AccountCreateRequest, AccountResponse, BalanceResponse, FundingRequest
@@ -10,7 +11,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.events.service import enqueue_event
 from app.ledger.service import append_ledger_entry, get_account_balance
-from app.models.entities import LedgerEntryType, User, UserRole
+from app.models.entities import Card, LedgerEntry, LedgerEntryType, Loan, TimeDeposit, Transfer, User, UserRole
 
 router = APIRouter(prefix="/accounts", tags=["accounts"])
 
@@ -144,3 +145,57 @@ def withdraw_endpoint(
     db.commit()
 
     return BalanceResponse(account_id=account_id, balance=get_account_balance(db, account_id))
+
+
+@router.delete("/{account_id}")
+def delete_account_endpoint(
+    account_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    account = get_account_by_id(db, account_id)
+    if not account:
+        raise HTTPException(status_code=404, detail="Account not found")
+    if current_user.role != UserRole.ADMIN and account.customer.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not allowed to delete this account")
+
+    ledger_count = db.scalar(
+        select(func.count()).select_from(LedgerEntry).where(LedgerEntry.account_id == account_id)
+    )
+    if ledger_count:
+        raise HTTPException(status_code=400, detail="Account has ledger history and cannot be deleted")
+
+    transfer_count = db.scalar(
+        select(func.count())
+        .select_from(Transfer)
+        .where(or_(Transfer.from_account == account_id, Transfer.to_account == account_id))
+    )
+    if transfer_count:
+        raise HTTPException(status_code=400, detail="Account has transfer history and cannot be deleted")
+
+    card_count = db.scalar(select(func.count()).select_from(Card).where(Card.account_id == account_id))
+    if card_count:
+        raise HTTPException(status_code=400, detail="Account has linked cards. Delete cards first")
+
+    deposit_count = db.scalar(
+        select(func.count()).select_from(TimeDeposit).where(TimeDeposit.account_id == account_id)
+    )
+    if deposit_count:
+        raise HTTPException(status_code=400, detail="Account has time deposits. Close them first")
+
+    loan_count = db.scalar(select(func.count()).select_from(Loan).where(Loan.account_id == account_id))
+    if loan_count:
+        raise HTTPException(status_code=400, detail="Account has loans. Close them first")
+
+    db.delete(account)
+    enqueue_event(
+        db,
+        aggregate_type="account",
+        aggregate_id=str(account_id),
+        event_type="ACCOUNT_DELETED",
+        payload={"account_id": account_id},
+    )
+    log_action(db, current_user.id, "account.delete", "SUCCESS")
+    db.commit()
+
+    return {"status": "deleted", "account_id": account_id}

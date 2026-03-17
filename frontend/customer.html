@@ -68,10 +68,11 @@
                       <th>Account ID</th>
                       <th>IBAN</th>
                       <th>Currency</th>
-                      <th>Balance</th>
-                      <th>Created</th>
-                      <th>Status</th>
-                    </tr>
+	                      <th>Balance</th>
+	                      <th>Created</th>
+	                      <th>Status</th>
+	                      <th>Action</th>
+	                    </tr>
                   </thead>
                   <tbody id="accounts-table-body"></tbody>
                 </table>
@@ -94,9 +95,9 @@
               </form>
             </article>
 
-            <article class="panel">
-              <h3>Initial deposit / top-up</h3>
-              <form id="deposit-form" class="form-row-2">
+	            <article class="panel">
+	              <h3>Initial deposit / top-up</h3>
+	              <form id="deposit-form" class="form-row-2">
                 <div class="field">
                   <label for="deposit-account">Account</label>
                   <select id="deposit-account" name="account_id" required></select>
@@ -109,9 +110,28 @@
                   <label for="deposit-reference">Reference</label>
                   <input id="deposit-reference" name="reference_id" minlength="3" placeholder="salary-topup-001" required />
                 </div>
-                <button type="submit" class="button button-primary">Post deposit</button>
-              </form>
-            </article>
+	                <button type="submit" class="button button-primary">Post deposit</button>
+	              </form>
+	            </article>
+
+	            <article class="panel">
+	              <h3>Withdraw funds</h3>
+	              <form id="withdraw-form" class="form-row-2">
+	                <div class="field">
+	                  <label for="withdraw-account">Account</label>
+	                  <select id="withdraw-account" name="account_id" required></select>
+	                </div>
+	                <div class="field">
+	                  <label for="withdraw-amount">Amount</label>
+	                  <input id="withdraw-amount" name="amount" type="number" min="0.01" step="0.01" placeholder="50.00" required />
+	                </div>
+	                <div class="field">
+	                  <label for="withdraw-reference">Reference</label>
+	                  <input id="withdraw-reference" name="reference_id" minlength="3" placeholder="atm-withdrawal-001" required />
+	                </div>
+	                <button type="submit" class="button button-primary">Withdraw</button>
+	              </form>
+	            </article>
           </div>
 
           
