@@ -90,16 +90,13 @@ function renderBalanceGrid() {
 
 function renderAccounts() {
   if (!state.accounts.length) {
-    els.accountsTableBody.innerHTML = `<tr><td colspan="7">No accounts yet. Create your first account.</td></tr>`;
+    els.accountsTableBody.innerHTML = `<tr><td colspan="6">No accounts yet. Create your first account.</td></tr>`;
     return;
   }
 
   els.accountsTableBody.innerHTML = state.accounts
     .map((account) => {
       const balance = state.balances[account.id] ?? 0;
-      const canDelete = balance === 0;
-      const deleteDisabled = canDelete ? "" : "disabled";
-      const deleteTitle = canDelete ? "" : 'title="Balance must be 0 to delete"';
       return `
         <tr>
           <td>#${account.id}</td>
@@ -108,11 +105,6 @@ function renderAccounts() {
           <td>${formatCurrency(balance, account.currency)}</td>
           <td>${formatDate(account.created_at)}</td>
           <td><span class="pill success">ACTIVE</span></td>
-          <td>
-            <button class="button button-ghost delete-account-btn" data-account-id="${account.id}" ${deleteDisabled} ${deleteTitle}>
-              Delete
-            </button>
-          </td>
         </tr>
       `;
     })
@@ -298,9 +290,6 @@ function renderCards() {
         <td>
           <button class="button button-ghost toggle-card-btn" data-card-id="${card.id}" data-next-status="${nextStatus}">
             Set ${nextStatus}
-          </button>
-          <button class="button button-ghost delete-card-btn" data-card-id="${card.id}">
-            Delete
           </button>
         </td>
       </tr>
@@ -593,31 +582,6 @@ function bindForms() {
     }
   });
 
-  els.accountsTableBody?.addEventListener("click", async (event) => {
-    const target = event.target;
-    if (!(target instanceof HTMLElement)) return;
-    if (!target.classList.contains("delete-account-btn")) return;
-
-    const accountId = Number(target.dataset.accountId);
-    if (!accountId) return;
-
-    const confirmDelete = window.confirm(
-      `Delete account #${accountId}? This is only allowed if the account has no ledger history or linked items.`
-    );
-    if (!confirmDelete) return;
-
-    clearAlert(els.alert);
-    target.setAttribute("disabled", "true");
-    try {
-      await apiRequest(`/accounts/${accountId}`, { method: "DELETE" });
-      showAlert(els.alert, "success", `Account #${accountId} deleted.`);
-      await refreshDashboard();
-    } catch (error) {
-      showAlert(els.alert, "error", toErrorMessage(error));
-    } finally {
-      target.removeAttribute("disabled");
-    }
-  });
 
   els.accountSelectLedger?.addEventListener("change", async () => {
     const accountId = Number(els.accountSelectLedger.value);
@@ -800,24 +764,6 @@ function bindForms() {
       try {
         await apiRequest(`/cards/${cardId}/status`, { method: "POST", body: { status: nextStatus } });
         showAlert(els.alert, "success", `Card #${cardId} set to ${nextStatus}.`);
-        await refreshDashboard();
-      } catch (error) {
-        showAlert(els.alert, "error", toErrorMessage(error));
-      } finally {
-        target.removeAttribute("disabled");
-      }
-    }
-
-    if (target.classList.contains("delete-card-btn")) {
-      if (!cardId) return;
-      const confirmDelete = window.confirm(`Delete card #${cardId}? This cannot be undone.`);
-      if (!confirmDelete) return;
-
-      clearAlert(els.alert);
-      target.setAttribute("disabled", "true");
-      try {
-        await apiRequest(`/cards/${cardId}`, { method: "DELETE" });
-        showAlert(els.alert, "success", `Card #${cardId} deleted.`);
         await refreshDashboard();
       } catch (error) {
         showAlert(els.alert, "error", toErrorMessage(error));

@@ -5,7 +5,6 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.accounts.service import get_account_by_id
-from app.audit.service import log_action
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.entities import Card, CardStatus, User, UserRole
@@ -85,23 +84,3 @@ def update_card_status(
     db.commit()
     db.refresh(card)
     return card
-
-
-@router.delete("/{card_id}")
-def delete_card(
-    card_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-) -> dict:
-    card = db.get(Card, card_id)
-    if not card:
-        raise HTTPException(status_code=404, detail="Card not found")
-
-    account = get_account_by_id(db, card.account_id)
-    if current_user.role != UserRole.ADMIN and account.customer.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not allowed to delete this card")
-
-    db.delete(card)
-    log_action(db, current_user.id, "card.delete", "SUCCESS")
-    db.commit()
-    return {"status": "deleted", "card_id": card_id}
