@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     jwt_secret: str = "change-me-for-production"
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
-    cors_allowed_origins: str = "*"
+    cors_allowed_origins: str = "http://localhost:8080,http://127.0.0.1:8080"
     rate_limit_requests: int = 50
     rate_limit_window_seconds: int = 60
     log_level: str = "INFO"
