@@ -24,9 +24,6 @@ def upgrade() -> None:
     ledger_entry_type = sa.Enum("DEBIT", "CREDIT", name="ledger_entry_type")
     transfer_status = sa.Enum("PENDING", "COMPLETED", "FAILED", name="transfer_status")
     event_status = sa.Enum("PENDING", "PROCESSED", name="event_status")
-    asset_type = sa.Enum("STOCK", name="asset_type")
-    asset_market = sa.Enum("BIST", "SP500", name="asset_market")
-    investment_side = sa.Enum("BUY", "SELL", name="investment_side")
     deposit_status = sa.Enum("ACTIVE", "MATURED", "COMPLETED", name="deposit_status")
     loan_status = sa.Enum("PENDING", "APPROVED", "REJECTED", name="loan_status")
     card_status = sa.Enum("ACTIVE", "INACTIVE", name="card_status")
@@ -119,52 +116,6 @@ def upgrade() -> None:
     )
 
     op.create_table(
-        "investment_assets",
-        sa.Column("id", sa.Integer(), primary_key=True),
-        sa.Column("symbol", sa.String(length=32), nullable=False),
-        sa.Column("name", sa.String(length=255), nullable=False),
-        sa.Column("asset_type", asset_type, nullable=False),
-        sa.Column("market", asset_market, nullable=False),
-        sa.Column("currency", sa.String(length=3), nullable=False),
-        sa.Column("exchange", sa.String(length=16), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-    )
-    op.create_index("ix_investment_assets_symbol", "investment_assets", ["symbol"], unique=False)
-
-    op.create_table(
-        "investment_positions",
-        sa.Column("id", sa.Integer(), primary_key=True),
-        sa.Column("user_id", sa.Integer(), nullable=False),
-        sa.Column("asset_id", sa.Integer(), nullable=False),
-        sa.Column("quantity", sa.Numeric(18, 6), nullable=False, server_default="0"),
-        sa.Column("average_price", sa.Numeric(18, 6), nullable=False, server_default="0"),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["asset_id"], ["investment_assets.id"], ondelete="CASCADE"),
-    )
-    op.create_index("ix_investment_positions_user_id", "investment_positions", ["user_id"], unique=False)
-    op.create_index("ix_investment_positions_asset_id", "investment_positions", ["asset_id"], unique=False)
-
-    op.create_table(
-        "investment_transactions",
-        sa.Column("id", sa.Integer(), primary_key=True),
-        sa.Column("user_id", sa.Integer(), nullable=False),
-        sa.Column("account_id", sa.Integer(), nullable=False),
-        sa.Column("asset_id", sa.Integer(), nullable=False),
-        sa.Column("side", investment_side, nullable=False),
-        sa.Column("quantity", sa.Numeric(18, 6), nullable=False),
-        sa.Column("price", sa.Numeric(18, 6), nullable=False),
-        sa.Column("total", sa.Numeric(18, 6), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["account_id"], ["accounts.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["asset_id"], ["investment_assets.id"], ondelete="CASCADE"),
-    )
-    op.create_index("ix_investment_transactions_user_id", "investment_transactions", ["user_id"], unique=False)
-    op.create_index("ix_investment_transactions_account_id", "investment_transactions", ["account_id"], unique=False)
-    op.create_index("ix_investment_transactions_asset_id", "investment_transactions", ["asset_id"], unique=False)
-
-    op.create_table(
         "time_deposits",
         sa.Column("id", sa.Integer(), primary_key=True),
         sa.Column("user_id", sa.Integer(), nullable=False),
@@ -220,9 +171,6 @@ def downgrade() -> None:
     op.drop_table("cards")
     op.drop_table("loans")
     op.drop_table("time_deposits")
-    op.drop_table("investment_transactions")
-    op.drop_table("investment_positions")
-    op.drop_table("investment_assets")
     op.drop_table("outbox_events")
     op.drop_table("audit_logs")
     op.drop_table("transfers")
@@ -234,9 +182,6 @@ def downgrade() -> None:
     op.execute("DROP TYPE IF EXISTS card_status")
     op.execute("DROP TYPE IF EXISTS loan_status")
     op.execute("DROP TYPE IF EXISTS deposit_status")
-    op.execute("DROP TYPE IF EXISTS investment_side")
-    op.execute("DROP TYPE IF EXISTS asset_market")
-    op.execute("DROP TYPE IF EXISTS asset_type")
     op.execute("DROP TYPE IF EXISTS event_status")
     op.execute("DROP TYPE IF EXISTS transfer_status")
     op.execute("DROP TYPE IF EXISTS ledger_entry_type")

@@ -409,25 +409,6 @@ textarea {
   gap: 0.8rem;
 }
 
-.market-controls {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0.8rem;
-  align-items: end;
-}
-
-.market-controls .field {
-  margin-bottom: 0;
-}
-
-.market-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .kpi {
   background: var(--surface);
   border: 1px solid var(--line);

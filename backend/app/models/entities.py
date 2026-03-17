@@ -38,20 +38,6 @@ class EventStatus(str, enum.Enum):
     PROCESSED = "PROCESSED"
 
 
-class AssetType(str, enum.Enum):
-    STOCK = "STOCK"
-
-
-class AssetMarket(str, enum.Enum):
-    BIST = "BIST"
-    SP500 = "SP500"
-
-
-class InvestmentSide(str, enum.Enum):
-    BUY = "BUY"
-    SELL = "SELL"
-
-
 class DepositStatus(str, enum.Enum):
     ACTIVE = "ACTIVE"
     MATURED = "MATURED"
@@ -171,48 +157,6 @@ class OutboxEvent(Base):
     )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-
-
-class InvestmentAsset(Base):
-    __tablename__ = "investment_assets"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    symbol: Mapped[str] = mapped_column(String(32), index=True, nullable=False)
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    asset_type: Mapped[AssetType] = mapped_column(Enum(AssetType, name="asset_type"), nullable=False)
-    market: Mapped[AssetMarket] = mapped_column(Enum(AssetMarket, name="asset_market"), nullable=False)
-    currency: Mapped[str] = mapped_column(String(3), nullable=False)
-    exchange: Mapped[str | None] = mapped_column(String(16), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-
-
-class InvestmentPosition(Base):
-    __tablename__ = "investment_positions"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    asset_id: Mapped[int] = mapped_column(ForeignKey("investment_assets.id", ondelete="CASCADE"), nullable=False, index=True)
-    quantity: Mapped[Decimal] = mapped_column(Numeric(18, 6), nullable=False, default=0)
-    average_price: Mapped[Decimal] = mapped_column(Numeric(18, 6), nullable=False, default=0)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-
-    asset: Mapped[InvestmentAsset] = relationship("InvestmentAsset")
-
-
-class InvestmentTransaction(Base):
-    __tablename__ = "investment_transactions"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id", ondelete="CASCADE"), nullable=False, index=True)
-    asset_id: Mapped[int] = mapped_column(ForeignKey("investment_assets.id", ondelete="CASCADE"), nullable=False, index=True)
-    side: Mapped[InvestmentSide] = mapped_column(Enum(InvestmentSide, name="investment_side"), nullable=False)
-    quantity: Mapped[Decimal] = mapped_column(Numeric(18, 6), nullable=False)
-    price: Mapped[Decimal] = mapped_column(Numeric(18, 6), nullable=False)
-    total: Mapped[Decimal] = mapped_column(Numeric(18, 6), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-
-    asset: Mapped[InvestmentAsset] = relationship("InvestmentAsset")
 
 
 class TimeDeposit(Base):

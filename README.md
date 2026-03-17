@@ -171,7 +171,6 @@ See `.env.example` for all configurable values.
 Important:
 - Use strong `JWT_SECRET` in real environments.
 - Do not commit `.env` to GitHub.
- - Set `FINNHUB_API_KEY` for live market data.
 
 ## CI/CD
 

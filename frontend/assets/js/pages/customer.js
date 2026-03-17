@@ -20,8 +20,6 @@ const state = {
   balancesByCurrency: {},
   transfers: [],
   ledgerEntries: [],
-  portfolio: { positions: [], summaries: [] },
-  investmentTransactions: [],
   timeDeposits: [],
   loans: [],
   cards: [],
@@ -36,15 +34,10 @@ const els = {
   balanceGrid: document.getElementById("balance-grid"),
   kpiAccounts: document.getElementById("kpi-accounts-count"),
   kpiTransfers: document.getElementById("kpi-transfers-count"),
-  kpiInvestments: document.getElementById("kpi-investments-count"),
   accountsTableBody: document.getElementById("accounts-table-body"),
   transfersTableBody: document.getElementById("transfers-table-body"),
   ledgerTableBody: document.getElementById("ledger-table-body"),
   profileCard: document.getElementById("profile-card"),
-  portfolioSummary: document.getElementById("portfolio-summary"),
-  portfolioUpdated: document.getElementById("portfolio-updated"),
-  assetsTableBody: document.getElementById("assets-table-body"),
-  investmentsTableBody: document.getElementById("investments-table-body"),
   timeDepositsTableBody: document.getElementById("time-deposits-table-body"),
   loansTableBody: document.getElementById("loans-table-body"),
   cardsTableBody: document.getElementById("cards-table-body"),
@@ -52,7 +45,6 @@ const els = {
   accountSelectTransferTo: document.getElementById("transfer-to-account"),
   accountSelectDeposit: document.getElementById("deposit-account"),
   accountSelectLedger: document.getElementById("ledger-account"),
-  investmentAccountSelect: document.getElementById("investment-account"),
   timeDepositAccountSelect: document.getElementById("time-deposit-account"),
   loanAccountSelect: document.getElementById("loan-account"),
   loanCurrencyInput: document.getElementById("loan-currency"),
@@ -60,7 +52,6 @@ const els = {
   createAccountForm: document.getElementById("create-account-form"),
   transferForm: document.getElementById("transfer-form"),
   depositForm: document.getElementById("deposit-form"),
-  investmentTradeForm: document.getElementById("investment-trade-form"),
   timeDepositForm: document.getElementById("time-deposit-form"),
   loanForm: document.getElementById("loan-form"),
   kycForm: document.getElementById("kyc-form"),
@@ -214,80 +205,6 @@ function populateProfileForm() {
   els.profileForm.country.value = state.profile.country || "";
 }
 
-function renderPortfolio() {
-  const { positions, summaries } = state.portfolio;
-  if (els.portfolioSummary) {
-    if (!summaries.length) {
-      els.portfolioSummary.innerHTML = `<article class="kpi"><p class="label">Portfolio</p><p class="value">No investments</p></article>`;
-    } else {
-      els.portfolioSummary.innerHTML = summaries
-        .map((summary) => {
-          const pnlClass = summary.pnl_abs > 0 ? "pnl-positive" : summary.pnl_abs < 0 ? "pnl-negative" : "pnl-neutral";
-          return `
-          <article class="kpi">
-            <p class="label">${summary.currency} portfolio</p>
-            <p class="value">${formatCurrency(summary.current_value, summary.currency)}</p>
-            <p class="${pnlClass}">${formatCurrency(summary.pnl_abs, summary.currency)} (${formatPercent(summary.pnl_pct)})</p>
-          </article>
-        `;
-        })
-        .join("");
-    }
-  }
-
-  if (els.assetsTableBody) {
-    if (!positions.length) {
-      els.assetsTableBody.innerHTML = `<tr><td colspan="7">No holdings yet.</td></tr>`;
-    } else {
-      els.assetsTableBody.innerHTML = positions
-        .map((pos) => {
-          const pnlClass = pos.pnl_abs > 0 ? "pnl-positive" : pos.pnl_abs < 0 ? "pnl-negative" : "pnl-neutral";
-          const name = pos.name ? ` <span class="inline-muted">${pos.name}</span>` : "";
-          return `
-          <tr>
-            <td>${pos.symbol}${name}</td>
-            <td>${pos.market}</td>
-            <td>${pos.quantity}</td>
-            <td>${formatCurrency(pos.average_price, pos.currency)}</td>
-            <td>${formatCurrency(pos.current_price, pos.currency)}</td>
-            <td>${formatCurrency(pos.current_value, pos.currency)}</td>
-            <td class="${pnlClass}">${formatCurrency(pos.pnl_abs, pos.currency)} (${formatPercent(pos.pnl_pct)})</td>
-          </tr>
-        `;
-        })
-        .join("");
-    }
-  }
-}
-
-function renderInvestmentTransactions() {
-  if (!els.investmentsTableBody) return;
-  if (!state.investmentTransactions.length) {
-    els.investmentsTableBody.innerHTML = `<tr><td colspan="9">No investment transactions yet.</td></tr>`;
-    return;
-  }
-
-  els.investmentsTableBody.innerHTML = state.investmentTransactions
-    .map((tx) => {
-      const sideClass = tx.side === "BUY" ? "pnl-positive" : "pnl-negative";
-      const account = getAccountById(tx.account_id);
-      return `
-      <tr>
-        <td>#${tx.id}</td>
-        <td class="${sideClass}">${tx.side}</td>
-        <td>${tx.symbol}</td>
-        <td>${tx.market}</td>
-        <td>${tx.quantity}</td>
-        <td>${formatCurrency(tx.price, tx.currency)}</td>
-        <td>${formatCurrency(tx.total, tx.currency)}</td>
-        <td>${account ? `#${account.id} (${account.currency})` : `#${tx.account_id}`}</td>
-        <td>${formatDate(tx.created_at)}</td>
-      </tr>
-    `;
-    })
-    .join("");
-}
-
 function renderTimeDeposits() {
   if (!els.timeDepositsTableBody) return;
   if (!state.timeDeposits.length) {
@@ -385,7 +302,6 @@ function renderTopBar() {
   els.welcomeSub.textContent = `Role: ${state.session.user.role} | Last sync: ${new Date().toLocaleTimeString()}`;
   els.kpiAccounts.textContent = String(state.accounts.length);
   els.kpiTransfers.textContent = String(state.transfers.length);
-  els.kpiInvestments.textContent = String(state.portfolio.positions.length);
 }
 
 function populateAccountSelects() {
@@ -398,7 +314,6 @@ function populateAccountSelects() {
     els.accountSelectTransferTo,
     els.accountSelectDeposit,
     els.accountSelectLedger,
-    els.investmentAccountSelect,
     els.timeDepositAccountSelect,
     els.loanAccountSelect,
     els.cardAccountSelect,
@@ -467,17 +382,6 @@ async function loadLedger(accountId) {
   state.ledgerEntries = await apiRequest(`/ledger/accounts/${accountId}/entries`);
 }
 
-async function loadPortfolio() {
-  state.portfolio = await apiRequest("/investments/portfolio");
-  if (els.portfolioUpdated) {
-    els.portfolioUpdated.textContent = `Updated ${new Date().toLocaleTimeString()}`;
-  }
-}
-
-async function loadInvestmentTransactions() {
-  state.investmentTransactions = await apiRequest("/investments/transactions");
-}
-
 async function loadTimeDeposits() {
   state.timeDeposits = await apiRequest("/time-deposits");
 }
@@ -506,10 +410,6 @@ async function refreshDashboard() {
   await loadProfile();
   await Promise.all([
     safeLoad(loadTransfers),
-    safeLoad(loadPortfolio, "Market data unavailable. Check API keys for investments.", () => {
-      state.portfolio = { positions: [], summaries: [] };
-    }),
-    safeLoad(loadInvestmentTransactions),
     safeLoad(loadTimeDeposits),
     safeLoad(loadLoans),
     safeLoad(loadCards),
@@ -522,8 +422,6 @@ async function refreshDashboard() {
   renderTransfers();
   renderLedgerEntries();
   renderProfile();
-  renderPortfolio();
-  renderInvestmentTransactions();
   renderTimeDeposits();
   renderLoans();
   renderCards();
@@ -658,43 +556,6 @@ function bindForms() {
     try {
       await loadLedger(accountId);
       renderLedgerEntries();
-    } catch (error) {
-      showAlert(els.alert, "error", toErrorMessage(error));
-    }
-  });
-
-  els.investmentTradeForm?.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    clearAlert(els.alert);
-
-    const side = els.investmentTradeForm.side.value;
-    const accountId = Number(els.investmentTradeForm.account_id.value);
-    const market = els.investmentTradeForm.market.value;
-    const symbol = els.investmentTradeForm.symbol.value.trim();
-    const name = els.investmentTradeForm.name.value.trim();
-    const quantity = Number(els.investmentTradeForm.quantity.value);
-
-    if (!accountId || !market || !symbol || !quantity) {
-      showAlert(els.alert, "error", "Investment trade form is incomplete.");
-      return;
-    }
-
-    const endpoint = side === "SELL" ? "/investments/sell" : "/investments/buy";
-
-    try {
-      await apiRequest(endpoint, {
-        method: "POST",
-        body: {
-          account_id: accountId,
-          market,
-          symbol,
-          name: name || undefined,
-          quantity,
-        },
-      });
-      showAlert(els.alert, "success", `Trade ${side.toLowerCase()} submitted.`);
-      els.investmentTradeForm.reset();
-      await refreshDashboard();
     } catch (error) {
       showAlert(els.alert, "error", toErrorMessage(error));
     }
@@ -923,14 +784,6 @@ async function init() {
     showAlert(els.alert, "error", toErrorMessage(error, "Unable to load dashboard data"));
   }
 
-  setInterval(async () => {
-    try {
-      await loadPortfolio();
-      renderPortfolio();
-    } catch (error) {
-      // background refresh; ignore transient errors
-    }
-  }, 30000);
 }
 
 init();

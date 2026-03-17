@@ -22,12 +22,10 @@ from app.pacs.manager import bank_ws_manager
 from app.pacs.router import router as pacs_router
 from app.models import entities  # noqa: F401
 from app.transfers.router import router as transfers_router
-from app.investments.router import router as investments_router
 from app.time_deposits.router import router as time_deposits_router
 from app.loans.router import router as loans_router
 from app.profile.router import router as profile_router
 from app.cards.router import router as cards_router
-from app.market.router import router as market_router
 
 configure_logging(settings.log_level)
 
@@ -92,9 +90,7 @@ app.include_router(transfers_router)
 app.include_router(audit_router)
 app.include_router(events_router)
 app.include_router(pacs_router)
-app.include_router(investments_router)
 app.include_router(time_deposits_router)
 app.include_router(loans_router)
 app.include_router(profile_router)
 app.include_router(cards_router)
-app.include_router(market_router)
